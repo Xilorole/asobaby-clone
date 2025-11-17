@@ -1,0 +1,102 @@
+# ワークフローの名前 (GitHubのActionsタブに表示されます)
+name: Build and Release Flutter App
+
+# ワークフローを実行するトリガー
+on:
+  # 1. mainブランチにプッシュされた時 (マージされた時)
+  push:
+    branches:
+      - main
+
+  # 2. mainブランチに対してPull Requestが作成・更新された時
+  pull_request:
+    branches:
+      - main
+
+# 実行するジョブ (作業単位)
+jobs:
+  # ジョブID (任意の名前)
+  build:
+    # 実行する環境 (Ubuntuの最新版)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ステップ1: リポジトリのコードをチェックアウトする
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ステップ2: Flutter SDK環境をセットアップする
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # バージョンはプロジェクトに合わせてください (例: '3.19.0')
+          # もし .fvm/fvm_config.json があれば自動で読み取ってくれます
+          flutter-version: "3.22.0"
+          channel: "stable"
+          cache: true # 依存関係をキャッシュして次回以降を高速化
+
+      # ステップ3: Flutterの依存パッケージをインストール
+      - name: Install dependencies
+        run: flutter pub get
+
+      # (推奨) ステップ4: コードが規約通りか静的解析を実行
+      # - name: Analyze code
+      #   run: flutter analyze
+
+      # (推奨) ステップ5: ユニットテストを実行
+      # - name: Run tests
+      #   run: flutter test
+
+      # ステップ6: Androidアプリ (APK) をビルドする
+      # --releaseモードでビルドします
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      # ステップ7: ビルド成果物 (APK) をアーティファクトとして保存する
+      # (この後のデプロイジョブや、GitHubから手動ダウンロードするために必要)
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  # --- ここから下は「リリース（配信）」用のジョブ ---
+  # (今回は「ビルドまで」がご要望ですが、Flowに従うとここまでがセットです)
+
+  release:
+    # `build` ジョブが成功したら実行する
+    needs: build
+
+    # 実行する環境
+    runs-on: ubuntu-latest
+
+    # このジョブは `main` ブランチにプッシュされた時だけ実行する
+    # (PRの検証時には実行しない)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download APK from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+
+      # (参考) ステップX: Azure Blob Storage へアップロード
+      # ここで前回の「Azureへのデプロイ」処理を実行します
+      # - name: Deploy to Azure Blob Storage
+      #   uses: azure/CLI@v1
+      #   with:
+      #     inlineScript: |
+      #       az storage blob upload \
+      #         --account-name [ストレージアカウント名] \
+      #         --container-name [コンテナ名] \
+      #         --file app-release.apk \
+      #         --name "latest-app.apk" \
+      #         --overwrite \
+      #         --auth-mode login # (別途Azureの認証設定が必要)
+      #       # version.json のアップロードなどもここで行う
+
+      - name: (Placeholder) Deploy step
+        run: |
+          echo "デプロイジョブを実行中..."
+          ls -l
+          echo "ここに 'app-release.apk' をAzureにアップロードする処理を実装します"
