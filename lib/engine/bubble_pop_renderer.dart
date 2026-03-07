@@ -17,7 +17,7 @@ import 'game_renderer.dart';
 /// - `speed` (double): float speed multiplier (default: 1.0)
 /// - `minSize` (double): minimum bubble radius (default: 30)
 /// - `maxSize` (double): maximum bubble radius (default: 60)
-/// - `colors` (List<String>): hex color strings (default: BabyTheme.funColors)
+/// - `colors` (List of String): hex color strings (default: BabyTheme.funColors)
 class BubblePopRenderer extends GameRenderer {
   const BubblePopRenderer({
     required super.config,

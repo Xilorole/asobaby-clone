@@ -38,4 +38,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/games/
+    - assets/games/manifest.json
+    - assets/games/bubble_pop_animals/config.json

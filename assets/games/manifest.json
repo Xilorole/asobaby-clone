@@ -1,0 +1,11 @@
+{
+  "manifestVersion": 1,
+  "games": [
+    {
+      "id": "bubble_pop_animals",
+      "version": 1,
+      "title": "Bubble Pop",
+      "sizeBytes": 1024
+    }
+  ]
+}
