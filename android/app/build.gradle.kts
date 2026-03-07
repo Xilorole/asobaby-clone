@@ -13,7 +13,7 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.asobaby"
+    namespace = "dev.asobaby.app"
     compileSdk = 35
 
     compileOptions {
@@ -39,18 +39,21 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.asobaby"
+        applicationId = "dev.asobaby.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 6
-        versionName = "2.0.3"
+        versionCode = 7
+        versionName = "2.1.0"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = if (signingConfigs.names.contains("release")) {
                 signingConfigs.getByName("release")
             } else {

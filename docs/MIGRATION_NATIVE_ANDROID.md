@@ -173,11 +173,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.asobaby"
+    namespace = "dev.asobaby.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.asobaby"
+        applicationId = "dev.asobaby.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 3        // 前回のビルド番号+1以上にすること
@@ -275,7 +275,7 @@ jobs:
 
 ## 重要な注意事項
 
-- **applicationId**: `com.example.asobaby` を維持すること（変えると別アプリ扱いになりアップデートできなくなる）
+- **applicationId**: `com.example.asobaby` から `dev.asobaby.app` に変更済み（Play Protect対策。`com.example.*` はテスト用予約名前空間のため有害判定されやすい）
 - **versionCode**: 現在 `2` なので、`3` 以上にすること（下がるとインストールに失敗する）
 - **署名**: 現在はデバッグ署名。リリース署名を設定する場合はキーストアの管理が必要
 - **GitHub API rate limit**: 未認証だと60回/時。普段使いなら問題ないが、ヘッダーに表示してもよい
@@ -286,7 +286,7 @@ jobs:
 - **リポジトリ**: `Xilorole/asobaby-clone`
 - **デフォルトブランチ**: `main`
 - **現在のバージョン**: `1.1.0+2`
-- **applicationId**: `com.example.asobaby`
+- **applicationId**: `dev.asobaby.app`
 - **minSdk**: Flutter管理 (実効値21程度) → Native化で24推奨
 - **Kotlin**: `2.2.20`
 - **Gradle AGP**: `8.11.1`
