@@ -1,0 +1,49 @@
+name: Staging Build
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute CalVer for dev build
+        id: version
+        run: |
+          TAG="$(date +%Y.%m%d.0)"
+          IFS='.' read -r YEAR MMDD PATCH <<< "$TAG"
+          CODE=$(( YEAR * 1000000 + MMDD * 100 ))
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Dev version: $TAG-dev (code: $CODE)"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+
+      - name: Build Debug APK
+        env:
+          CAL_VERSION: ${{ steps.version.outputs.version }}
+          CAL_VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: cd android && ./gradlew assembleDebug --no-daemon --build-cache
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: asobaby-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14

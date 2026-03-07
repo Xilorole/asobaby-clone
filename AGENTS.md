@@ -29,7 +29,44 @@ android/app/src/main/kotlin/dev/asobaby/app/
 
 ### Git / Commits
 - Commit messages in English, using conventional commit format (`feat:`, `fix:`, `chore:`, `docs:`)
-- Push to `origin/main`
+- **Always work on `develop` branch**, then create a PR to `main`
+- Never push directly to `main`
+
+### Branching & PR Workflow
+1. Create a feature branch from `develop` (or work on `develop` directly)
+2. Push to `origin/develop`
+3. Create a **Pull Request** from `develop` → `main`
+4. Staging build runs automatically on PR (debug APK uploaded as artifact)
+5. After merge to `main`, bump version and tag for release
+
+### Versioning & Deployment
+- **CalVer** format: `YYYY.MMDD.patch` (e.g. `2026.0308.0`)
+- **versionCode**: Computed automatically as `YYYYMMDD * 100 + patch`
+- Version is **not hardcoded** — it's computed at build time from the date or from the git tag
+- CI sets `CAL_VERSION` and `CAL_VERSION_CODE` env vars; Gradle reads them automatically
+- To deploy a release:
+  1. Create a git tag: `git tag v2026.0308.0` (CalVer format)
+  2. Push the tag: `git push origin v2026.0308.0`
+  3. The `build.yml` workflow auto-derives version from the tag, builds release APK, and creates a GitHub Release
+  4. **No manual version bump in `build.gradle.kts` needed**
+- For same-day multiple releases, increment the patch: `v2026.0308.1`, `v2026.0308.2`, etc.
+
+### Debug vs Release APK
+| | Debug (dev) | Release (production) |
+|---|---|---|
+| **App ID** | `dev.asobaby.app.dev` | `dev.asobaby.app` |
+| **App label** | "Asobaby Dev" | "Asobaby" |
+| **Version suffix** | `-dev` | (none) |
+| **Debuggable** | Yes | No |
+| **Minified** | No | Yes (R8) |
+| **Co-install** | Both can be installed side-by-side on same device |
+
+### CI/CD Workflows
+| Workflow | File | Trigger | Action |
+|----------|------|---------|--------|
+| **Staging Build** | `.github/workflows/staging.yml` | Push to `develop`, PR to `develop`/`main` | Build debug APK, upload artifact |
+| **Build & Release** | `.github/workflows/build.yml` | Push `v*` tag, PR to `main` | Build release APK, create GitHub Release |
+| **Deploy Content** | `.github/workflows/deploy-content.yml` | Push to `main` (game_specs/**) | Deploy game content to Azure |
 
 ### Code Style
 - Language: Kotlin

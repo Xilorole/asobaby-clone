@@ -16,6 +16,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Compute CalVer from tag
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/v}"
+          else
+            TAG="$(date +%Y.%m%d.0)"
+          fi
+          # Parse YYYY.MMDD.PATCH → versionCode = YYYYMMDD * 100 + PATCH
+          IFS='.' read -r YEAR MMDD PATCH <<< "$TAG"
+          PATCH="${PATCH:-0}"
+          CODE=$(( YEAR * 1000000 + MMDD * 100 + PATCH ))
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Version: $TAG (code: $CODE)"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,6 +61,9 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
       - name: Build Release APK
+        env:
+          CAL_VERSION: ${{ steps.version.outputs.version }}
+          CAL_VERSION_CODE: ${{ steps.version.outputs.code }}
         run: cd android && ./gradlew assembleRelease --no-daemon --build-cache
 
       - name: Upload APK
