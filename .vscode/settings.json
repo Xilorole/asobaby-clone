@@ -1,0 +1,9 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "./gradlew": true,
+    "git push": true,
+    "git add": true,
+    "git commit": true,
+    "gh": true
+  }
+}

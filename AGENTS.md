@@ -29,27 +29,28 @@ android/app/src/main/kotlin/dev/asobaby/app/
 
 ### Git / Commits
 - Commit messages in English, using conventional commit format (`feat:`, `fix:`, `chore:`, `docs:`)
-- **Always work on `develop` branch**, then create a PR to `main`
+- **Always work on a feature branch** (`feat/xxx`, `fix/xxx`), then create a PR to `main`
 - Never push directly to `main`
 
 ### Branching & PR Workflow
-1. Create a feature branch from `develop` (or work on `develop` directly)
-2. Push to `origin/develop`
-3. Create a **Pull Request** from `develop` → `main`
-4. Staging build runs automatically on PR (debug APK uploaded as artifact)
-5. After merge to `main`, bump version and tag for release
+1. Create a feature branch from `main` (e.g. `feat/new-game`, `fix/bubble-crash`)
+2. Run `./scripts/bump-version.sh` to auto-bump CalVer (or CI will block the PR)
+3. Push to `origin/<branch>` and create a **Pull Request** → `main`
+4. Staging build + version check run automatically on PR
+5. After merge to `main`, release is **automatic** (tag + APK + GitHub Release)
 
 ### Versioning & Deployment
-- **CalVer** format: `YYYY.MMDD.patch` (e.g. `2026.0308.0`)
-- **versionCode**: Computed automatically as `YYYYMMDD * 100 + patch`
-- Version is **not hardcoded** — it's computed at build time from the date or from the git tag
-- CI sets `CAL_VERSION` and `CAL_VERSION_CODE` env vars; Gradle reads them automatically
-- To deploy a release:
-  1. Create a git tag: `git tag v2026.0308.0` (CalVer format)
-  2. Push the tag: `git push origin v2026.0308.0`
-  3. The `build.yml` workflow auto-derives version from the tag, builds release APK, and creates a GitHub Release
-  4. **No manual version bump in `build.gradle.kts` needed**
-- For same-day multiple releases, increment the patch: `v2026.0308.1`, `v2026.0308.2`, etc.
+- **CalVer** format: `YY.M.patch` (e.g. `26.3.0` = March 2026)
+- **versionCode**: Simple incremental integer (must increase each release)
+- Version is defined in `android/app/build.gradle.kts` as `val calVersion = "..."`
+- `./scripts/bump-version.sh` auto-bumps version if it matches main (local pre-commit helper)
+- CI `check-version.yml` **blocks PRs** where version has not been bumped
+- On merge to `main`:
+  1. `build.yml` reads `calVersion` from `build.gradle.kts`
+  2. Auto-creates git tag `v<calVersion>`
+  3. Builds release APK and creates GitHub Release
+  4. **No manual tagging needed**
+- For multiple releases in the same month, increment the patch: `26.3.0` → `26.3.1`
 
 ### Debug vs Release APK
 | | Debug (dev) | Release (production) |
@@ -64,8 +65,9 @@ android/app/src/main/kotlin/dev/asobaby/app/
 ### CI/CD Workflows
 | Workflow | File | Trigger | Action |
 |----------|------|---------|--------|
-| **Staging Build** | `.github/workflows/staging.yml` | Push to `develop`, PR to `develop`/`main` | Build debug APK, upload artifact |
-| **Build & Release** | `.github/workflows/build.yml` | Push `v*` tag, PR to `main` | Build release APK, create GitHub Release |
+| **Staging Build** | `.github/workflows/staging.yml` | PR to `main` | Build debug APK, upload artifact |
+| **Check Version** | `.github/workflows/check-version.yml` | PR to `main` | Block if version not bumped |
+| **Build & Release** | `.github/workflows/build.yml` | Push to `main` (merge) | Auto-tag, build release APK, create GitHub Release |
 | **Deploy Content** | `.github/workflows/deploy-content.yml` | Push to `main` (game_specs/**) | Deploy game content to Azure |
 
 ### Code Style
