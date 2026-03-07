@@ -8,6 +8,7 @@ import '../common/parent_gate.dart';
 import '../models/models.dart';
 import '../main.dart' show contentService;
 import 'bubble_pop_renderer.dart';
+import 'peekaboo_renderer.dart';
 import 'game_renderer.dart';
 
 /// The game screen that hosts a game renderer.
@@ -177,13 +178,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           assetBasePath: assetBasePath,
           isBundled: isBundled,
         );
+      case GameType.peekaboo:
+        return PeekabooRenderer(
+          config: config,
+          assetBasePath: assetBasePath,
+          isBundled: isBundled,
+        );
       // Future game types will be added here:
       // case GameType.tapResponse:
       //   return TapResponseRenderer(...);
       // case GameType.shapeMatching:
       //   return ShapeMatchingRenderer(...);
-      // case GameType.peekaboo:
-      //   return PeekabooRenderer(...);
       // case GameType.drawing:
       //   return DrawingRenderer(...);
       default:

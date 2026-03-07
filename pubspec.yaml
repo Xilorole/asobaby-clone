@@ -44,3 +44,5 @@ flutter:
   assets:
     - assets/games/manifest.json
     - assets/games/bubble_pop_animals/config.json
+    - assets/games/peekaboo_animals/config.json
+    - assets/games/peekaboo_animals/animals/

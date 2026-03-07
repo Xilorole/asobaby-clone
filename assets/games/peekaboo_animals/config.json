@@ -1,0 +1,22 @@
+{
+  "id": "peekaboo_animals",
+  "type": "peekaboo",
+  "title": "いないいないばあ",
+  "description": "Tap the hiding spots to find cute animals! Peekaboo!",
+  "thumbnailPath": "thumbnail.png",
+  "assets": {
+    "animal_cat": "animals/cat.png",
+    "animal_dog": "animals/dog.png",
+    "animal_rabbit": "animals/rabbit.png",
+    "animal_bear": "animals/bear.png",
+    "animal_panda": "animals/panda.png",
+    "animal_penguin": "animals/penguin.png"
+  },
+  "settings": {
+    "revealDurationMs": 2000,
+    "hidingSpots": 3,
+    "backgroundColors": ["#E8F8E8", "#F8E8F8", "#E8F0F8", "#FFF8E0"],
+    "hideColors": ["#FF6B6B", "#4ECDC4", "#FFE66D", "#a855f7", "#6BCB77", "#4D96FF"]
+  },
+  "version": 1
+}
