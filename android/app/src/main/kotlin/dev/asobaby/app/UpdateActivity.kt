@@ -33,7 +33,7 @@ data class Release(
 
 // ─── Activity ──────────────────────────────────────────────────────
 
-class MainActivity : AppCompatActivity() {
+class UpdateActivity : AppCompatActivity() {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 

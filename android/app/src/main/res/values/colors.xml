@@ -6,4 +6,13 @@
     <color name="white">#FFFFFFFF</color>
     <color name="orange">#FFFF9800</color>
     <color name="green">#FF4CAF50</color>
+
+    <!-- FAB colors -->
+    <color name="fab_random">#FFFF6B6B</color>
+    <color name="fab_select">#FF4D96FF</color>
+    <color name="fab_settings">#FF757575</color>
+
+    <!-- Game selection card -->
+    <color name="game_card_title">#FF333333</color>
+    <color name="game_card_description">#FF666666</color>
 </resources>

@@ -11,4 +11,9 @@
     <string name="later">Later</string>
     <string name="release_notes_label">Release notes:</string>
     <string name="download_failed">Download failed.</string>
+
+    <!-- Game -->
+    <string name="random_switch">🔀 ランダム</string>
+    <string name="game_selection_title">ゲームをえらぼう</string>
+    <string name="settings">せってい</string>
 </resources>

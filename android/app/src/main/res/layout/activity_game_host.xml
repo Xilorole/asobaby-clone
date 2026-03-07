@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- ゲームが表示されるコンテナ -->
+    <FrameLayout
+        android:id="@+id/gameContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- ランダム切替ボタン -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnRandom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/random_switch"
+        app:backgroundTint="@color/fab_random"
+        app:tint="@color/white"
+        app:fabSize="normal"
+        app:srcCompat="@android:drawable/ic_menu_rotate" />
+
+    <!-- ゲーム選択ボタン -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="88dp"
+        android:contentDescription="@string/game_selection_title"
+        app:backgroundTint="@color/fab_select"
+        app:tint="@color/white"
+        app:fabSize="normal"
+        app:srcCompat="@android:drawable/ic_menu_more" />
+
+    <!-- 設定/アップデートボタン -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="160dp"
+        android:contentDescription="@string/settings"
+        app:backgroundTint="@color/fab_settings"
+        app:tint="@color/white"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/ic_menu_manage" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
