@@ -10,7 +10,7 @@ on:
       storage_account:
         description: Azure Storage Account name
         required: true
-        default: asobaby
+        default: stasobabyclone
       container:
         description: Azure Blob container name
         required: true
@@ -20,6 +20,9 @@ jobs:
   deploy:
     name: Build & Deploy Content
     runs-on: ubuntu-latest
+    env:
+      STORAGE_ACCOUNT: ${{ inputs.storage_account || 'stasobabyclone' }}
+      CONTAINER: ${{ inputs.container || 'games' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,8 +42,8 @@ jobs:
         run: |
           chmod +x scripts/deploy_content.sh
           ./scripts/deploy_content.sh \
-            "${{ inputs.storage_account }}" \
-            "${{ inputs.container }}"
+            "$STORAGE_ACCOUNT" \
+            "$CONTAINER"
 
       - name: Upload content artifact
         uses: actions/upload-artifact@v4
