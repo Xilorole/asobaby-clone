@@ -42,8 +42,8 @@ android {
         applicationId = "dev.asobaby.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.1.0"
+        versionCode = 8
+        versionName = "3.0.0"
     }
 
     buildTypes {
