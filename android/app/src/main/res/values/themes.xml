@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Asobaby" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/blue_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/blue_100</item>
+        <item name="colorSecondary">@color/blue_700</item>
+    </style>
+</resources>

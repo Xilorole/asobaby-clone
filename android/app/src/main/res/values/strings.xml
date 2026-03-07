@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Asobaby</string>
+    <string name="current_version_label">Current Version</string>
+    <string name="check_for_update">Check for Update</string>
+    <string name="checking">Checking…</string>
+    <string name="update_available">⬆ Update available</string>
+    <string name="up_to_date">✓ Up to date</string>
+    <string name="update_dialog_title">Update Available</string>
+    <string name="install">Install</string>
+    <string name="later">Later</string>
+    <string name="release_notes_label">Release notes:</string>
+    <string name="download_failed">Download failed.</string>
+</resources>
