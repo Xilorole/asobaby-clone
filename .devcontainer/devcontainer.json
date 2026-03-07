@@ -6,9 +6,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "mathiasfrohlich.Kotlin"
-      ]
+      "extensions": ["mathiasfrohlich.Kotlin"]
     }
   },
   "remoteEnv": {
