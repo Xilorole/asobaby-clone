@@ -1,0 +1,45 @@
+name: Deploy Content
+
+on:
+  workflow_dispatch:
+    inputs:
+      storage_account:
+        description: Azure Storage Account name
+        required: true
+        default: asobaby
+      container:
+        description: Azure Blob container name
+        required: true
+        default: games
+
+jobs:
+  deploy:
+    name: Build & Deploy Content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build content package
+        run: |
+          chmod +x scripts/build_content.sh
+          ./scripts/build_content.sh
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Blob Storage
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          chmod +x scripts/deploy_content.sh
+          ./scripts/deploy_content.sh \
+            "${{ inputs.storage_account }}" \
+            "${{ inputs.container }}"
+
+      - name: Upload content artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-content
+          path: content/
