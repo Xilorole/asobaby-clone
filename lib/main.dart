@@ -9,7 +9,7 @@ import 'catalog/catalog_screen.dart';
 /// Remote manifest URL (Azure Blob Storage).
 /// Replace with your actual Azure Blob container URL.
 const kRemoteManifestUrl =
-    'https://asobaby.blob.core.windows.net/games/manifest.json';
+    'https://stasobabyclone.blob.core.windows.net/games/manifest.json';
 
 late ContentService contentService;
 

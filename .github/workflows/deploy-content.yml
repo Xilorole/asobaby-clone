@@ -1,6 +1,10 @@
 name: Deploy Content
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'game_specs/**'
   workflow_dispatch:
     inputs:
       storage_account:
