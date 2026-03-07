@@ -113,11 +113,30 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
 
       String? apkUrl;
       int? apkSize;
-      for (final a in (data['assets'] as List? ?? [])) {
-        if ((a['name'] as String? ?? '').endsWith('.apk')) {
-          apkUrl = a['browser_download_url'] as String?;
-          apkSize = a['size'] as int?;
-          break;
+      // Prefer architecture-specific APK matching this device, fall back to fat APK
+      final preferredAbis = ['arm64-v8a', 'armeabi-v7a', 'x86_64'];
+      final assets = (data['assets'] as List? ?? []);
+
+      // First try to find a split APK for this device
+      for (final abi in preferredAbis) {
+        for (final a in assets) {
+          final name = a['name'] as String? ?? '';
+          if (name.contains(abi) && name.endsWith('.apk')) {
+            apkUrl = a['browser_download_url'] as String?;
+            apkSize = a['size'] as int?;
+            break;
+          }
+        }
+        if (apkUrl != null) break;
+      }
+      // Fall back to any .apk (fat APK)
+      if (apkUrl == null) {
+        for (final a in assets) {
+          if ((a['name'] as String? ?? '').endsWith('.apk')) {
+            apkUrl = a['browser_download_url'] as String?;
+            apkSize = a['size'] as int?;
+            break;
+          }
         }
       }
 
