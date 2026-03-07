@@ -42,10 +42,7 @@ class BabyTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          textStyle: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          textStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
       // No app bar by default (baby games are fullscreen)

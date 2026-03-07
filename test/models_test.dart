@@ -10,14 +10,8 @@ void main() {
         'title': 'Bubble Pop Animals',
         'description': 'Pop bubbles with animal faces!',
         'thumbnailPath': 'thumbnail.png',
-        'assets': {
-          'bg': 'background.png',
-          'pop_sound': 'pop.mp3',
-        },
-        'settings': {
-          'bubbleCount': 10,
-          'speed': 1.5,
-        },
+        'assets': {'bg': 'background.png', 'pop_sound': 'pop.mp3'},
+        'settings': {'bubbleCount': 10, 'speed': 1.5},
         'version': 2,
       };
 
@@ -123,8 +117,7 @@ void main() {
         manifestVersion: 1,
         baseUrl: 'https://example.com',
         games: [
-          GameSummary(
-              id: 'test', version: 1, title: 'Test', sizeBytes: 100),
+          GameSummary(id: 'test', version: 1, title: 'Test', sizeBytes: 100),
         ],
       );
 

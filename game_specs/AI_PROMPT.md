@@ -35,6 +35,7 @@ Given a game spec in markdown format, generate:
 ### Game Type Settings
 
 #### bubblePop
+
 - `bubbleCount` (int): max simultaneous bubbles (default: 8)
 - `speed` (double): float speed multiplier (default: 1.0)
 - `minSize` (double): minimum bubble radius in dp (default: 30)
@@ -42,22 +43,26 @@ Given a game spec in markdown format, generate:
 - `colors` (List<String>): hex color strings, e.g. ["#FF6B6B", "#4ECDC4"]
 
 #### tapResponse
+
 - `zones` (int): number of tap zones (default: 4)
 - `colors` (List<String>): hex colors for each zone
 - `sounds` (List<String>): sound asset keys for each zone
 - `animation` (String): "bounce"|"spin"|"shake"|"grow" (default: "bounce")
 
 #### shapeMatching
+
 - `shapes` (List<String>): shape types: "circle"|"square"|"triangle"|"star"|"heart"
 - `targetCount` (int): number of targets per round (default: 3)
 - `colors` (List<String>): hex colors for shapes
 
 #### peekaboo
+
 - `itemCount` (int): number of hidden items (default: 4)
 - `revealAnimation` (String): "flip"|"slide"|"fade"|"bounce" (default: "flip")
 - `items` (List<String>): asset keys for hidden items
 
 #### drawing
+
 - `brushSizes` (List<double>): available brush sizes (default: [5, 10, 20])
 - `colors` (List<String>): palette colors
 - `backgroundColor` (String): hex color for canvas background
@@ -65,6 +70,7 @@ Given a game spec in markdown format, generate:
 ### Asset Requirements
 
 For each asset in the `assets` map:
+
 - Images: PNG format, appropriate size for mobile (200-500px per dimension)
 - Sounds: MP3 format, short duration (0.5-3 seconds for SFX)
 - Thumbnails: 200x200 PNG, visually represents the game
@@ -109,7 +115,8 @@ For each asset in the `assets` map:
 ```
 
 **Required assets to create**:
+
 1. `thumbnail.png` — 200x200, cute cartoon ocean scene with bubbles
 2. `sounds/pop.mp3` — bubbly pop sound, 0.5s
-3. `sounds/splash.mp3` — water splash, 0.5s  
+3. `sounds/splash.mp3` — water splash, 0.5s
 4. `sounds/ocean_ambient.mp3` — gentle ocean waves, 30s loop

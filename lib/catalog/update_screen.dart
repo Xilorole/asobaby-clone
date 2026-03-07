@@ -41,7 +41,8 @@ class _UpdateScreenState extends State<UpdateScreen> {
         _checking = false;
         _updateInfo = info;
         if (info == null) {
-          _error = 'Could not reach the update server.\n'
+          _error =
+              'Could not reach the update server.\n'
               'Check your internet connection.';
         }
       });
@@ -120,10 +121,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
             child: CircularProgressIndicator(strokeWidth: 3),
           ),
           SizedBox(width: 16),
-          Text(
-            'Checking for updates...',
-            style: TextStyle(fontSize: 18),
-          ),
+          Text('Checking for updates...', style: TextStyle(fontSize: 18)),
         ],
       );
     }
@@ -209,10 +207,7 @@ class _UpdateScreenState extends State<UpdateScreen> {
           Text(
             '${allUpdates.length} update(s) available'
             ' (${_formatBytes(_updateInfo!.totalSizeBytes)})',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Expanded(

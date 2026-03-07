@@ -29,11 +29,11 @@ class GameSummary {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'version': version,
-        'title': title,
-        'sizeBytes': sizeBytes,
-      };
+    'id': id,
+    'version': version,
+    'title': title,
+    'sizeBytes': sizeBytes,
+  };
 }
 
 /// Top-level manifest listing all available games on the content server.
@@ -66,8 +66,8 @@ class GameManifest {
   }
 
   Map<String, dynamic> toJson() => {
-        'manifestVersion': manifestVersion,
-        'baseUrl': baseUrl,
-        'games': games.map((g) => g.toJson()).toList(),
-      };
+    'manifestVersion': manifestVersion,
+    'baseUrl': baseUrl,
+    'games': games.map((g) => g.toJson()).toList(),
+  };
 }

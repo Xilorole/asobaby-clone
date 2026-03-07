@@ -41,10 +41,8 @@ class ContentService {
   late final String _contentDir;
   bool _initialized = false;
 
-  ContentService({
-    required this.remoteManifestUrl,
-    Dio? dio,
-  }) : _dio = dio ?? Dio();
+  ContentService({required this.remoteManifestUrl, Dio? dio})
+    : _dio = dio ?? Dio();
 
   /// Initialize the service. Must be called before other methods.
   Future<void> init() async {
@@ -112,10 +110,7 @@ class ContentService {
       }
 
       // Cache the remote manifest for reference
-      _manifestBox.put(
-        'remote_manifest',
-        jsonEncode(remoteManifest.toJson()),
-      );
+      _manifestBox.put('remote_manifest', jsonEncode(remoteManifest.toJson()));
 
       return UpdateInfo(newGames: newGames, updatedGames: updatedGames);
     } on DioException {
@@ -161,8 +156,9 @@ class ContentService {
       await Directory(gameDir).create(recursive: true);
 
       // Save config.json
-      await File('$gameDir/config.json')
-          .writeAsString(jsonEncode(config.toJson()));
+      await File(
+        '$gameDir/config.json',
+      ).writeAsString(jsonEncode(config.toJson()));
 
       // Download all assets
       final assetEntries = config.assets.entries.toList();
@@ -228,18 +224,19 @@ class ContentService {
   Future<void> _loadBundledGames(Map<String, GameConfig> games) async {
     try {
       // Load the bundled manifest that lists available games
-      final manifestStr =
-          await rootBundle.loadString('assets/games/manifest.json');
-      final manifestData =
-          jsonDecode(manifestStr) as Map<String, dynamic>;
+      final manifestStr = await rootBundle.loadString(
+        'assets/games/manifest.json',
+      );
+      final manifestData = jsonDecode(manifestStr) as Map<String, dynamic>;
       final gameIds = (manifestData['games'] as List)
           .map((g) => (g as Map<String, dynamic>)['id'] as String)
           .toList();
 
       for (final id in gameIds) {
         try {
-          final configStr =
-              await rootBundle.loadString('assets/games/$id/config.json');
+          final configStr = await rootBundle.loadString(
+            'assets/games/$id/config.json',
+          );
           final config = GameConfig.fromJson(
             jsonDecode(configStr) as Map<String, dynamic>,
           );
@@ -300,8 +297,7 @@ class ContentService {
     final gamesList = manifestData['games'] as List;
 
     // Remove existing entry for this game
-    gamesList.removeWhere(
-        (g) => (g as Map<String, dynamic>)['id'] == game.id);
+    gamesList.removeWhere((g) => (g as Map<String, dynamic>)['id'] == game.id);
 
     // Add updated entry
     gamesList.add(game.toJson());
@@ -315,7 +311,8 @@ class ContentService {
   /// Returns the path to the downloaded file if it exists,
   /// otherwise returns the bundled asset path.
   String resolveAssetPath(GameConfig config, String assetKey) {
-    final downloadedPath = '$_contentDir/${config.id}/${config.assets[assetKey]}';
+    final downloadedPath =
+        '$_contentDir/${config.id}/${config.assets[assetKey]}';
     if (File(downloadedPath).existsSync()) {
       return downloadedPath;
     }

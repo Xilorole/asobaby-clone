@@ -46,11 +46,7 @@ class ParentGate {
                 onParentVerified();
               }
             },
-            child: Container(
-              width: 44,
-              height: 44,
-              color: Colors.transparent,
-            ),
+            child: Container(width: 44, height: 44, color: Colors.transparent),
           ),
         ),
       ],

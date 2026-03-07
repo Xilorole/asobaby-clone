@@ -54,11 +54,9 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   void _launchGame(GameConfig config) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GameScreen(config: config),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => GameScreen(config: config)));
   }
 
   void _launchRandomGame() {
@@ -69,9 +67,9 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   void _openUpdateScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const UpdateScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const UpdateScreen()));
   }
 
   @override
@@ -85,10 +83,7 @@ class _CatalogScreenState extends State<CatalogScreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                BabyTheme.accentBlue,
-                BabyTheme.bgColor,
-              ],
+              colors: [BabyTheme.accentBlue, BabyTheme.bgColor],
             ),
           ),
           child: SafeArea(
@@ -100,8 +95,8 @@ class _CatalogScreenState extends State<CatalogScreen>
                     ),
                   )
                 : _games.isEmpty
-                    ? _buildEmptyState()
-                    : _buildCatalog(),
+                ? _buildEmptyState()
+                : _buildCatalog(),
           ),
         ),
       ),
@@ -113,10 +108,7 @@ class _CatalogScreenState extends State<CatalogScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            '🎮',
-            style: TextStyle(fontSize: 80),
-          ),
+          const Text('🎮', style: TextStyle(fontSize: 80)),
           const SizedBox(height: 16),
           Text(
             'No games yet!',
@@ -130,10 +122,7 @@ class _CatalogScreenState extends State<CatalogScreen>
           Text(
             'Long-press the top-right corner\nto check for updates',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -171,10 +160,7 @@ class _CatalogScreenState extends State<CatalogScreen>
       animation: _shuffleController,
       builder: (context, child) {
         final wobble = sin(_shuffleController.value * 2 * pi) * 0.05;
-        return Transform.rotate(
-          angle: wobble,
-          child: child,
-        );
+        return Transform.rotate(angle: wobble, child: child);
       },
       child: GestureDetector(
         onTap: _launchRandomGame,
@@ -193,10 +179,7 @@ class _CatalogScreenState extends State<CatalogScreen>
             ],
           ),
           child: const Center(
-            child: Text(
-              '🎲',
-              style: TextStyle(fontSize: 48),
-            ),
+            child: Text('🎲', style: TextStyle(fontSize: 48)),
           ),
         ),
       ),
@@ -231,15 +214,9 @@ class _CatalogScreenState extends State<CatalogScreen>
           ],
         ),
         child: Center(
-          child: Text(
-            typeEmoji,
-            style: const TextStyle(fontSize: 64),
-          ),
+          child: Text(typeEmoji, style: const TextStyle(fontSize: 64)),
         ),
       ),
     );
   }
 }
-
-
-

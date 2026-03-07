@@ -54,9 +54,7 @@ class GameConfig {
   factory GameConfig.fromJson(Map<String, dynamic> json) {
     return GameConfig(
       id: json['id'] as String,
-      type: GameType.values.firstWhere(
-        (t) => t.name == json['type'] as String,
-      ),
+      type: GameType.values.firstWhere((t) => t.name == json['type'] as String),
       title: json['title'] as String,
       description: json['description'] as String? ?? '',
       thumbnailPath: json['thumbnailPath'] as String,

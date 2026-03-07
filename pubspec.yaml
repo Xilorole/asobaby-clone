@@ -1,6 +1,6 @@
 name: asobaby
 description: "Fun, simple games for babies and toddlers under 4 years old."
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:

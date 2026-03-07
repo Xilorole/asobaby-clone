@@ -27,9 +27,7 @@ class BubblePopRenderer extends GameRenderer {
 
   @override
   Widget build(BuildContext context) {
-    return _BubblePopGame(
-      config: config,
-    );
+    return _BubblePopGame(config: config);
   }
 }
 
@@ -49,8 +47,7 @@ class _BubblePopGameState extends State<_BubblePopGame>
   final Random _random = Random();
   late final AnimationController _tickController;
 
-  int get _maxBubbles =>
-      (widget.config.settings['bubbleCount'] as int?) ?? 8;
+  int get _maxBubbles => (widget.config.settings['bubbleCount'] as int?) ?? 8;
   double get _speed =>
       (widget.config.settings['speed'] as num?)?.toDouble() ?? 1.0;
   double get _minSize =>
@@ -115,14 +112,16 @@ class _BubblePopGameState extends State<_BubblePopGame>
 
   void _spawnBubble(Size screenSize) {
     final radius = _minSize + _random.nextDouble() * (_maxSize - _minSize);
-    _bubbles.add(_Bubble(
-      x: radius + _random.nextDouble() * (screenSize.width - radius * 2),
-      y: screenSize.height + radius + _random.nextDouble() * 100,
-      radius: radius,
-      color: _colors[_random.nextInt(_colors.length)],
-      speed: 1.0 + _random.nextDouble() * 2.0,
-      wobbleOffset: _random.nextDouble() * 2 * pi,
-    ));
+    _bubbles.add(
+      _Bubble(
+        x: radius + _random.nextDouble() * (screenSize.width - radius * 2),
+        y: screenSize.height + radius + _random.nextDouble() * 100,
+        radius: radius,
+        color: _colors[_random.nextInt(_colors.length)],
+        speed: 1.0 + _random.nextDouble() * 2.0,
+        wobbleOffset: _random.nextDouble() * 2 * pi,
+      ),
+    );
   }
 
   void _popBubble(_Bubble bubble) {
@@ -135,13 +134,15 @@ class _BubblePopGameState extends State<_BubblePopGame>
         duration: const Duration(milliseconds: 400),
       )..forward();
 
-      _pops.add(_PopAnimation(
-        x: bubble.x,
-        y: bubble.y,
-        color: bubble.color,
-        radius: bubble.radius,
-        controller: controller,
-      ));
+      _pops.add(
+        _PopAnimation(
+          x: bubble.x,
+          y: bubble.y,
+          color: bubble.color,
+          radius: bubble.radius,
+          controller: controller,
+        ),
+      );
     });
   }
 
@@ -152,20 +153,24 @@ class _BubblePopGameState extends State<_BubblePopGame>
       child: Stack(
         children: [
           // Bubbles
-          ..._bubbles.map((bubble) => Positioned(
-                left: bubble.x - bubble.radius,
-                top: bubble.y - bubble.radius,
-                child: GestureDetector(
-                  onTapDown: (_) => _popBubble(bubble),
-                  child: _BubbleWidget(bubble: bubble),
-                ),
-              )),
+          ..._bubbles.map(
+            (bubble) => Positioned(
+              left: bubble.x - bubble.radius,
+              top: bubble.y - bubble.radius,
+              child: GestureDetector(
+                onTapDown: (_) => _popBubble(bubble),
+                child: _BubbleWidget(bubble: bubble),
+              ),
+            ),
+          ),
           // Pop animations
-          ..._pops.map((pop) => Positioned(
-                left: pop.x - pop.radius,
-                top: pop.y - pop.radius,
-                child: _PopWidget(pop: pop),
-              )),
+          ..._pops.map(
+            (pop) => Positioned(
+              left: pop.x - pop.radius,
+              top: pop.y - pop.radius,
+              child: _PopWidget(pop: pop),
+            ),
+          ),
         ],
       ),
     );
@@ -277,10 +282,7 @@ class _PopWidget extends StatelessWidget {
               width: pop.radius * 2,
               height: pop.radius * 2,
               child: CustomPaint(
-                painter: _BurstPainter(
-                  color: pop.color,
-                  progress: t,
-                ),
+                painter: _BurstPainter(color: pop.color, progress: t),
               ),
             ),
           ),
