@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app/baby_theme.dart';
 import '../common/parent_gate.dart';
+import '../engine/game_screen.dart';
 import '../main.dart' show contentService;
 import '../models/models.dart';
 import 'update_screen.dart';
@@ -55,7 +56,7 @@ class _CatalogScreenState extends State<CatalogScreen>
   void _launchGame(GameConfig config) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _PlaceholderGameScreen(config: config),
+        builder: (_) => GameScreen(config: config),
       ),
     );
   }
@@ -240,48 +241,5 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 }
 
-/// Temporary placeholder until the real GameScreen is built.
-class _PlaceholderGameScreen extends StatelessWidget {
-  final GameConfig config;
 
-  const _PlaceholderGameScreen({required this.config});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: Container(
-          color: BabyTheme.funColors[
-              config.id.hashCode.abs() % BabyTheme.funColors.length],
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('🚧', style: TextStyle(fontSize: 80)),
-                const SizedBox(height: 16),
-                Text(
-                  config.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Tap to go back',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
