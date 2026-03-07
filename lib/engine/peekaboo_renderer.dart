@@ -82,6 +82,9 @@ class _PeekabooGameState extends State<_PeekabooGame>
   final Map<int, AnimationController> _revealControllers = {};
   final Map<int, AnimationController> _wobbleControllers = {};
 
+  // Pending reshuffle timer — ensures only one reshuffle is scheduled at a time
+  bool _reshufflePending = false;
+
   // Animal asset keys extracted from config
   late List<String> _animalKeys;
 
@@ -216,16 +219,29 @@ class _PeekabooGameState extends State<_PeekabooGame>
     )..forward();
     _revealControllers[index] = ctrl;
 
-    // After reveal duration, hide again and reshuffle
-    Future.delayed(Duration(milliseconds: _revealMs), () {
-      if (!mounted) return;
-      ctrl.reverse().then((_) {
+    // Schedule a single reshuffle after the reveal duration.
+    // If a reshuffle is already pending (from a previous tap), skip —
+    // the existing timer will handle it.
+    if (!_reshufflePending) {
+      _reshufflePending = true;
+      Future.delayed(Duration(milliseconds: _revealMs), () {
         if (!mounted) return;
-        ctrl.dispose();
-        _revealControllers.remove(index);
-        _reshuffle();
+        // Reverse all active reveal animations, then reshuffle once
+        final futures = <Future>[];
+        for (final entry in _revealControllers.entries.toList()) {
+          futures.add(entry.value.reverse().then((_) {
+            if (!mounted) return;
+            entry.value.dispose();
+            _revealControllers.remove(entry.key);
+          }));
+        }
+        Future.wait(futures).then((_) {
+          if (!mounted) return;
+          _reshufflePending = false;
+          _reshuffle();
+        });
       });
-    });
+    }
   }
 
   void _reshuffle() {
