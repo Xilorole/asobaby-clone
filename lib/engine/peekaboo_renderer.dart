@@ -85,8 +85,7 @@ class _PeekabooGameState extends State<_PeekabooGame>
   // Animal asset keys extracted from config
   late List<String> _animalKeys;
 
-  int get _spotCount =>
-      (widget.config.settings['hidingSpots'] as int?) ?? 3;
+  int get _spotCount => (widget.config.settings['hidingSpots'] as int?) ?? 3;
   int get _revealMs =>
       (widget.config.settings['revealDurationMs'] as int?) ?? 2000;
 
@@ -94,8 +93,7 @@ class _PeekabooGameState extends State<_PeekabooGame>
     final list = widget.config.settings['backgroundColors'] as List?;
     if (list != null) {
       return list
-          .map((c) =>
-              Color(int.parse((c as String).replaceFirst('#', '0xFF'))))
+          .map((c) => Color(int.parse((c as String).replaceFirst('#', '0xFF'))))
           .toList();
     }
     return const [
@@ -110,8 +108,7 @@ class _PeekabooGameState extends State<_PeekabooGame>
     final list = widget.config.settings['hideColors'] as List?;
     if (list != null) {
       return list
-          .map((c) =>
-              Color(int.parse((c as String).replaceFirst('#', '0xFF'))))
+          .map((c) => Color(int.parse((c as String).replaceFirst('#', '0xFF'))))
           .toList();
     }
     return BabyTheme.funColors;
@@ -165,13 +162,15 @@ class _PeekabooGameState extends State<_PeekabooGame>
       }
       usedAnimals.add(animal);
 
-      spots.add(_HidingSpot(
-        center: _randomCenter(i),
-        size: 0.22 + _random.nextDouble() * 0.08, // 22-30% of width
-        color: colors[i % colors.length],
-        animalAssetKey: animal,
-        shapeType: _random.nextInt(3),
-      ));
+      spots.add(
+        _HidingSpot(
+          center: _randomCenter(i),
+          size: 0.22 + _random.nextDouble() * 0.08, // 22-30% of width
+          color: colors[i % colors.length],
+          animalAssetKey: animal,
+          shapeType: _random.nextInt(3),
+        ),
+      );
     }
     return spots;
   }
@@ -250,8 +249,10 @@ class _PeekabooGameState extends State<_PeekabooGame>
     final assetPath = widget.config.assets[assetKey];
     if (assetPath == null) {
       // Fallback emoji
-      return Text(_fallbackEmoji(assetKey),
-          style: TextStyle(fontSize: sizePx * 0.6));
+      return Text(
+        _fallbackEmoji(assetKey),
+        style: TextStyle(fontSize: sizePx * 0.6),
+      );
     }
 
     final fullPath = '${widget.assetBasePath}/$assetPath';
@@ -310,8 +311,7 @@ class _PeekabooGameState extends State<_PeekabooGame>
               ..._buildBackgroundDecorations(w, h),
 
               // Hiding spots
-              for (var i = 0; i < _spots.length; i++)
-                _buildSpot(i, w, h),
+              for (var i = 0; i < _spots.length; i++) _buildSpot(i, w, h),
             ],
           );
         },
@@ -377,10 +377,7 @@ class _PeekabooGameState extends State<_PeekabooGame>
                 final rotation = sin(t * pi * 2) * 0.05;
                 return Transform.scale(
                   scale: scale,
-                  child: Transform.rotate(
-                    angle: rotation,
-                    child: c,
-                  ),
+                  child: Transform.rotate(angle: rotation, child: c),
                 );
               },
               child: _HidingShape(
@@ -428,10 +425,7 @@ class _HidingShape extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _ShapePainter(
-        color: color,
-        shapeType: shapeType,
-      ),
+      painter: _ShapePainter(color: color, shapeType: shapeType),
     );
   }
 }
@@ -472,7 +466,10 @@ class _ShapePainter extends CustomPainter {
 
       case 1: // Rounded rectangle
         final rect = Rect.fromCenter(
-            center: center, width: size.width * 0.9, height: size.height * 0.9);
+          center: center,
+          width: size.width * 0.9,
+          height: size.height * 0.9,
+        );
         final shadowRect = rect.shift(const Offset(2, 4));
         canvas.drawRRect(
           RRect.fromRectAndRadius(shadowRect, const Radius.circular(20)),
