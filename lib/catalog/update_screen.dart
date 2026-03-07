@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../main.dart' show contentService;
+import '../services/app_update_service.dart';
 import '../services/content_service.dart';
 
 /// Parent-facing screen for checking and downloading game updates.
@@ -21,10 +24,66 @@ class _UpdateScreenState extends State<UpdateScreen> {
   String? _error;
   String? _successMessage;
 
+  // App update state
+  final AppUpdateService _appUpdateService = AppUpdateService(
+    owner: 'Xilorole',
+    repo: 'asobaby-clone',
+  );
+  AppRelease? _appRelease;
+  bool _checkingApp = false;
+  bool _downloadingApp = false;
+  double _appDownloadProgress = 0.0;
+  String? _appError;
+
   @override
   void initState() {
     super.initState();
     _checkForUpdates();
+    _checkForAppUpdate();
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    if (!Platform.isAndroid) return; // APK install only on Android
+
+    setState(() {
+      _checkingApp = true;
+      _appError = null;
+    });
+
+    await _appUpdateService.init();
+    final release = await _appUpdateService.checkForUpdate();
+
+    if (mounted) {
+      setState(() {
+        _checkingApp = false;
+        _appRelease = release;
+      });
+    }
+  }
+
+  Future<void> _installAppUpdate() async {
+    setState(() {
+      _downloadingApp = true;
+      _appDownloadProgress = 0.0;
+      _appError = null;
+    });
+
+    final success = await _appUpdateService.downloadAndInstall(
+      onProgress: (progress) {
+        if (mounted) {
+          setState(() => _appDownloadProgress = progress);
+        }
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _downloadingApp = false;
+        if (!success) {
+          _appError = 'Install failed. Please try again.';
+        }
+      });
+    }
   }
 
   Future<void> _checkForUpdates() async {
@@ -100,6 +159,12 @@ class _UpdateScreenState extends State<UpdateScreen> {
             // Update list
             if (_updateInfo != null && _updateInfo!.hasUpdates)
               _buildUpdateList(),
+
+            // App update section
+            if (Platform.isAndroid) ...[
+              const SizedBox(height: 24),
+              _buildAppUpdateSection(),
+            ],
 
             const Spacer(),
 
@@ -240,6 +305,140 @@ class _UpdateScreenState extends State<UpdateScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildAppUpdateSection() {
+    if (_checkingApp) {
+      return const Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 12),
+          Text('Checking for app updates...'),
+        ],
+      );
+    }
+
+    if (_appError != null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(_appError!, style: TextStyle(color: Colors.red.shade700)),
+      );
+    }
+
+    if (_downloadingApp) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            LinearProgressIndicator(
+              value: _appDownloadProgress,
+              borderRadius: BorderRadius.circular(8),
+              minHeight: 8,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Downloading update... ${(_appDownloadProgress * 100).toInt()}%',
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_appRelease != null && _appUpdateService.hasUpdate) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.system_update, color: Colors.blue.shade700),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'App Update Available',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        'v${_appUpdateService.currentVersion}'
+                        ' → v${_appRelease!.version}'
+                        '${_appRelease!.apkSizeBytes != null ? " • ${_formatBytes(_appRelease!.apkSizeBytes!)}" : ""}',
+                        style: TextStyle(
+                          color: Colors.blue.shade600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (_appRelease!.releaseNotes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                _appRelease!.releaseNotes,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+              ),
+            ],
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _installAppUpdate,
+              icon: const Icon(Icons.download),
+              label: const Text('Install Update'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Up to date or no release found
+    if (_appRelease != null && !_appUpdateService.hasUpdate) {
+      return Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'App is up to date (v${_appUpdateService.currentVersion})',
+            style: TextStyle(color: Colors.green.shade600, fontSize: 14),
+          ),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildActionButtons() {
