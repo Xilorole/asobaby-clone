@@ -57,7 +57,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
             if (s.error != null) ...[
               const SizedBox(height: 16),
-              Text(s.error!, style: const TextStyle(color: Colors.red)),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    s.error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              ),
             ],
             if (!isAndroid) ...[
               const SizedBox(height: 16),

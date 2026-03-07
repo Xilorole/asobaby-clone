@@ -103,6 +103,7 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
         'https://api.github.com/repos/$owner/$repo/releases/latest',
         options: Options(
           headers: {'Accept': 'application/vnd.github+json'},
+          sendTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
         ),
       );
@@ -129,10 +130,10 @@ class UpdateNotifier extends StateNotifier<UpdateState> {
           apkSizeBytes: apkSize,
         ),
       );
-    } catch (_) {
+    } catch (e) {
       state = state.copyWith(
         checking: false,
-        error: 'Failed to fetch release info.',
+        error: 'Failed to fetch release info.\n$e',
       );
     }
   }
