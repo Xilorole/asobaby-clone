@@ -29,7 +29,33 @@ android/app/src/main/kotlin/dev/asobaby/app/
 
 ### Git / Commits
 - Commit messages in English, using conventional commit format (`feat:`, `fix:`, `chore:`, `docs:`)
-- Push to `origin/main`
+- **Always work on `develop` branch**, then create a PR to `main`
+- Never push directly to `main`
+
+### Branching & PR Workflow
+1. Create a feature branch from `develop` (or work on `develop` directly)
+2. Push to `origin/develop`
+3. Create a **Pull Request** from `develop` → `main`
+4. Staging build runs automatically on PR (debug APK uploaded as artifact)
+5. After merge to `main`, bump version and tag for release
+
+### Versioning & Deployment
+- Version is defined in `android/app/build.gradle.kts` (`versionName` + `versionCode`)
+- **versionCode**: Increment by 1 for every release
+- **versionName**: Follow semver (`major.minor.patch`)
+- To deploy a release:
+  1. Bump `versionName` and `versionCode` in `build.gradle.kts`
+  2. Commit with `chore: bump version to X.Y.Z (versionCode N)`
+  3. Create a git tag: `git tag vX.Y.Z`
+  4. Push both: `git push origin main vX.Y.Z`
+  5. The `build.yml` workflow builds a release APK and creates a GitHub Release
+
+### CI/CD Workflows
+| Workflow | File | Trigger | Action |
+|----------|------|---------|--------|
+| **Staging Build** | `.github/workflows/staging.yml` | Push to `develop`, PR to `develop`/`main` | Build debug APK, upload artifact |
+| **Build & Release** | `.github/workflows/build.yml` | Push `v*` tag, PR to `main` | Build release APK, create GitHub Release |
+| **Deploy Content** | `.github/workflows/deploy-content.yml` | Push to `main` (game_specs/**) | Deploy game content to Azure |
 
 ### Code Style
 - Language: Kotlin
