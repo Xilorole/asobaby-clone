@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'game_specs/**'
+      - "game_specs/**"
   workflow_dispatch:
     inputs:
       storage_account:

@@ -128,7 +128,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.only(
-                      bottom: 16, left: 24, right: 24),
+                    bottom: 16,
+                    left: 24,
+                    right: 24,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -261,12 +264,7 @@ class _GameNavButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            emoji,
-            style: const TextStyle(fontSize: 36),
-          ),
-        ),
+        child: Center(child: Text(emoji, style: const TextStyle(fontSize: 36))),
       ),
     );
   }
