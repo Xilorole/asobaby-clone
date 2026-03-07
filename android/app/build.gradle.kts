@@ -1,4 +1,6 @@
 import java.util.Properties
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 plugins {
     id("com.android.application")
@@ -11,6 +13,19 @@ val keystoreProperties = Properties().apply {
         file.inputStream().use { load(it) }
     }
 }
+
+// ─── CalVer Versioning ─────────────────────────────────────────────
+// Format: YYYY.MMDD.patch  (e.g. 2026.0308.0)
+// versionCode: YYYYMMDD * 100 + patch  (e.g. 2026030800)
+// Override via gradle properties: -PcalverPatch=1 or env CAL_VERSION / CAL_VERSION_CODE
+val today: LocalDate = LocalDate.now()
+val calverDate = today.format(DateTimeFormatter.ofPattern("yyyy.MMdd"))
+val patch = (project.findProperty("calverPatch") as? String)?.toIntOrNull() ?: 0
+
+val calVersionName: String = System.getenv("CAL_VERSION")
+    ?: "$calverDate.$patch"
+val calVersionCode: Int = System.getenv("CAL_VERSION_CODE")?.toIntOrNull()
+    ?: (today.year * 10000 + today.monthValue * 100 + today.dayOfMonth) * 100 + patch
 
 android {
     namespace = "dev.asobaby.app"
@@ -42,14 +57,23 @@ android {
         applicationId = "dev.asobaby.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "3.0.0"
+        versionCode = calVersionCode
+        versionName = calVersionName
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            isDebuggable = true
+            // Debug builds get a distinct app label so both can be installed
+            manifestPlaceholders["appLabel"] = "Asobaby Dev"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = false
+            manifestPlaceholders["appLabel"] = "Asobaby"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

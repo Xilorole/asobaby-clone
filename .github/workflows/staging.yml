@@ -15,6 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Compute CalVer for dev build
+        id: version
+        run: |
+          TAG="$(date +%Y.%m%d.0)"
+          IFS='.' read -r YEAR MMDD PATCH <<< "$TAG"
+          CODE=$(( YEAR * 1000000 + MMDD * 100 ))
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Dev version: $TAG-dev (code: $CODE)"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -26,6 +36,9 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
       - name: Build Debug APK
+        env:
+          CAL_VERSION: ${{ steps.version.outputs.version }}
+          CAL_VERSION_CODE: ${{ steps.version.outputs.code }}
         run: cd android && ./gradlew assembleDebug --no-daemon --build-cache
 
       - name: Upload Debug APK

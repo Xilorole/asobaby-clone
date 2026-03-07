@@ -40,15 +40,26 @@ android/app/src/main/kotlin/dev/asobaby/app/
 5. After merge to `main`, bump version and tag for release
 
 ### Versioning & Deployment
-- Version is defined in `android/app/build.gradle.kts` (`versionName` + `versionCode`)
-- **versionCode**: Increment by 1 for every release
-- **versionName**: Follow semver (`major.minor.patch`)
+- **CalVer** format: `YYYY.MMDD.patch` (e.g. `2026.0308.0`)
+- **versionCode**: Computed automatically as `YYYYMMDD * 100 + patch`
+- Version is **not hardcoded** — it's computed at build time from the date or from the git tag
+- CI sets `CAL_VERSION` and `CAL_VERSION_CODE` env vars; Gradle reads them automatically
 - To deploy a release:
-  1. Bump `versionName` and `versionCode` in `build.gradle.kts`
-  2. Commit with `chore: bump version to X.Y.Z (versionCode N)`
-  3. Create a git tag: `git tag vX.Y.Z`
-  4. Push both: `git push origin main vX.Y.Z`
-  5. The `build.yml` workflow builds a release APK and creates a GitHub Release
+  1. Create a git tag: `git tag v2026.0308.0` (CalVer format)
+  2. Push the tag: `git push origin v2026.0308.0`
+  3. The `build.yml` workflow auto-derives version from the tag, builds release APK, and creates a GitHub Release
+  4. **No manual version bump in `build.gradle.kts` needed**
+- For same-day multiple releases, increment the patch: `v2026.0308.1`, `v2026.0308.2`, etc.
+
+### Debug vs Release APK
+| | Debug (dev) | Release (production) |
+|---|---|---|
+| **App ID** | `dev.asobaby.app.dev` | `dev.asobaby.app` |
+| **App label** | "Asobaby Dev" | "Asobaby" |
+| **Version suffix** | `-dev` | (none) |
+| **Debuggable** | Yes | No |
+| **Minified** | No | Yes (R8) |
+| **Co-install** | Both can be installed side-by-side on same device |
 
 ### CI/CD Workflows
 | Workflow | File | Trigger | Action |
