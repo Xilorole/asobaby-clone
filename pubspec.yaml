@@ -1,7 +1,7 @@
 name: asobaby
-description: "Fun, simple games for babies and toddlers under 4 years old."
+description: "Minimal app update checker using GitHub Releases."
 publish_to: "none"
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.10.0
@@ -10,39 +10,16 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # HTTP & networking
   dio: ^5.7.0
-  connectivity_plus: ^6.1.0
-
-  # Local storage & caching
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  path_provider: ^2.1.5
-  cached_network_image: ^3.4.1
-
-  # Audio
-  audioplayers: ^6.1.0
-
-  # JSON serialization
-  json_annotation: ^4.9.0
-
-  # App update
   package_info_plus: ^8.0.0
   open_filex: ^4.5.0
+  path_provider: ^2.1.5
+  flutter_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.13
-  json_serializable: ^6.8.0
-  hive_generator: ^2.0.1
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - assets/games/manifest.json
-    - assets/games/bubble_pop_animals/config.json
-    - assets/games/peekaboo_animals/config.json
-    - assets/games/peekaboo_animals/animals/

@@ -1,221 +1,227 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'app/baby_theme.dart';
-import 'services/app_update_service.dart';
-import 'services/content_service.dart';
-import 'catalog/catalog_screen.dart';
+import 'app_update_service.dart';
 
-/// Remote manifest URL (Azure Blob Storage).
-/// Replace with your actual Azure Blob container URL.
-const kRemoteManifestUrl =
-    'https://stasobabyclone.blob.core.windows.net/games/manifest.json';
-
-late ContentService contentService;
-late AppUpdateService appUpdateService;
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Hive for local storage
-  await Hive.initFlutter();
-
-  // Initialize content service
-  contentService = ContentService(remoteManifestUrl: kRemoteManifestUrl);
-  await contentService.init();
-
-  // Initialize app update service
-  appUpdateService = AppUpdateService(
-    owner: 'Xilorole',
-    repo: 'asobaby-clone',
-  );
-  await appUpdateService.init();
-
-  // Enter immersive fullscreen (hide status bar + nav bar)
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-  // Lock to portrait for now (individual games can override)
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-  runApp(const AsobabyApp());
+void main() {
+  runApp(const ProviderScope(child: UpdateCheckerApp()));
 }
 
-class AsobabyApp extends StatelessWidget {
-  const AsobabyApp({super.key});
+class UpdateCheckerApp extends StatelessWidget {
+  const UpdateCheckerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Asobaby',
       debugShowCheckedModeBanner: false,
-      theme: BabyTheme.themeData,
-      home: const _BootScreen(),
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
+      home: const HomeScreen(),
     );
   }
 }
 
-/// Wrapper that checks for app updates on boot, then shows catalog.
-class _BootScreen extends StatefulWidget {
-  const _BootScreen();
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<_BootScreen> createState() => _BootScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _BootScreenState extends State<_BootScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAppUpdate();
-  }
-
-  Future<void> _checkAppUpdate() async {
-    // Only check on Android (APK installs)
-    if (!Platform.isAndroid) return;
-
-    final release = await appUpdateService.checkForUpdate();
-    if (release != null && appUpdateService.hasUpdate && mounted) {
-      _showUpdateDialog(release);
-    }
-  }
-
-  void _showUpdateDialog(AppRelease release) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => _AppUpdateDialog(release: release),
-    );
+    ref.read(updateProvider.notifier).init();
   }
 
   @override
   Widget build(BuildContext context) {
-    return const CatalogScreen();
-  }
-}
+    final s = ref.watch(updateProvider);
 
-/// Dialog shown at boot when an app update is available.
-class _AppUpdateDialog extends StatefulWidget {
-  const _AppUpdateDialog({required this.release});
-
-  final AppRelease release;
-
-  @override
-  State<_AppUpdateDialog> createState() => _AppUpdateDialogState();
-}
-
-class _AppUpdateDialogState extends State<_AppUpdateDialog> {
-  bool _downloading = false;
-  double _progress = 0.0;
-  String? _error;
-
-  Future<void> _install() async {
-    setState(() {
-      _downloading = true;
-      _progress = 0.0;
-      _error = null;
-    });
-
-    final success = await appUpdateService.downloadAndInstall(
-      onProgress: (p) {
-        if (mounted) setState(() => _progress = p);
-      },
-    );
-
-    if (mounted) {
-      if (success) {
-        Navigator.of(context).pop();
-      } else {
-        setState(() {
-          _downloading = false;
-          _error = 'Install failed. Please try again.';
-        });
-      }
-    }
-  }
-
-  String _formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1048576) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / 1048576).toStringAsFixed(1)} MB';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: [
-          Icon(Icons.system_update, color: Colors.blue.shade700),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('Update Available')),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'v${appUpdateService.currentVersion} → v${widget.release.version}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue.shade700,
-              fontSize: 16,
-            ),
-          ),
-          if (widget.release.apkSizeBytes != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Size: ${_formatBytes(widget.release.apkSizeBytes!)}',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-            ),
-          ],
-          if (widget.release.releaseNotes.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              widget.release.releaseNotes,
-              maxLines: 6,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ],
-          if (_downloading) ...[
-            const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: _progress,
-              borderRadius: BorderRadius.circular(8),
-              minHeight: 8,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Downloading... ${(_progress * 100).toInt()}%',
-              style: const TextStyle(fontSize: 13),
-            ),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              _error!,
-              style: TextStyle(color: Colors.red.shade700, fontSize: 13),
-            ),
-          ],
-        ],
-      ),
-      actions: _downloading
-          ? null
-          : [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Later'),
-              ),
-              FilledButton.icon(
-                onPressed: _install,
-                icon: const Icon(Icons.download, size: 18),
-                label: const Text('Install'),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Asobaby')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _VersionCard(state: s),
+            const SizedBox(height: 24),
+            _CheckButton(state: s),
+            if (s.downloading) ...[
+              const SizedBox(height: 24),
+              LinearProgressIndicator(value: s.downloadProgress),
+              const SizedBox(height: 8),
+              Text('${(s.downloadProgress * 100).toStringAsFixed(0)}%'),
+            ],
+            if (s.error != null) ...[
+              const SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    s.error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
               ),
             ],
+            if (!isAndroid) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Note: APK install is only supported on Android.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Widgets ───────────────────────────────────────────────────────
+
+class _VersionCard extends StatelessWidget {
+  const _VersionCard({required this.state});
+  final UpdateState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Current Version',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'v${state.currentVersion}',
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Build ${state.buildNumber}',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            if (state.release != null) ...[
+              const Divider(height: 24),
+              Text(
+                'Latest: v${state.release!.version}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              if (state.hasUpdate)
+                const Text(
+                  '⬆ Update available',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              else
+                const Text(
+                  '✓ Up to date',
+                  style: TextStyle(color: Colors.green),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckButton extends ConsumerWidget {
+  const _CheckButton({required this.state});
+  final UpdateState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final busy = state.checking || state.downloading;
+
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: busy ? null : () => _onPressed(context, ref),
+        icon: state.checking
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.refresh),
+        label: Text(state.checking ? 'Checking...' : 'Check for Update'),
+      ),
+    );
+  }
+
+  Future<void> _onPressed(BuildContext context, WidgetRef ref) async {
+    await ref.read(updateProvider.notifier).checkForUpdate();
+
+    if (!context.mounted) return;
+    final s = ref.read(updateProvider);
+
+    if (s.error != null) return;
+
+    if (s.hasUpdate) {
+      _showUpdateDialog(context, s.release!, ref);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Up to date (v${s.release?.version})')),
+      );
+    }
+  }
+
+  void _showUpdateDialog(
+    BuildContext context,
+    AppRelease release,
+    WidgetRef ref,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Update Available'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('New version: ${release.version}'),
+            if (release.sizeMB.isNotEmpty) Text('Size: ${release.sizeMB}'),
+            if (release.releaseNotes.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Release notes:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                release.releaseNotes,
+                maxLines: 8,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(updateProvider.notifier).downloadAndInstall();
+            },
+            child: const Text('Install'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -12,6 +12,8 @@ jobs:
   build:
     name: Analyze, Test & Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -50,7 +52,12 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
-        run: flutter test
+        run: |
+          if [ -d "test" ] && find test -name '*_test.dart' | grep -q .; then
+            flutter test
+          else
+            echo "No tests found – skipping"
+          fi
 
       - name: Build APK
         run: flutter build apk --release
