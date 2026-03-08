@@ -65,10 +65,10 @@ CURRENT_DATE="${CURRENT_VERSION%.*}"  # e.g. 26.3
 CURRENT_PATCH="${CURRENT_VERSION##*.}" # e.g. 0
 
 if [[ "$TODAY" == "$CURRENT_DATE" ]]; then
-    # Same day — increment patch
+    # Same month — increment patch
     NEW_PATCH=$((CURRENT_PATCH + 1))
 else
-    # New day — reset patch
+    # New month — reset patch
     NEW_PATCH=0
 fi
 
