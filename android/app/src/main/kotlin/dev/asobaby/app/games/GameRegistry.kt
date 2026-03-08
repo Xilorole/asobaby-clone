@@ -2,6 +2,7 @@ package dev.asobaby.app.games
 
 import dev.asobaby.app.games.bubbles.BubblePopGameView
 import dev.asobaby.app.games.animal.AnimalEmojiGameView
+import dev.asobaby.app.games.memory.MemoryCardGameView
 
 /**
  * 全ゲームの登録簿。
@@ -21,6 +22,12 @@ object GameRegistry {
             name = "❓ どうぶつ",
             description = "はてなをタップして動物を見つけよう！",
             factory = { context -> AnimalEmojiGameView(context) }
+        ),
+        GameInfo(
+            id = "memory_card",
+            name = "🃏 しんけいすいじゃく",
+            description = "カードをめくってペアを見つけよう！",
+            factory = { context -> MemoryCardGameView(context) }
         )
     )
 
