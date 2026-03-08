@@ -16,7 +16,7 @@ jobs:
       - name: Read version from build.gradle.kts
         id: version
         run: |
-          VERSION=$(grep -oP 'val calVersion = "\K[^"]+' android/app/build.gradle.kts)
+          VERSION=$(sed -n 's/.*val calVersion = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -1)
           if [[ -z "$VERSION" ]]; then
             echo "::error::Could not read calVersion"
             exit 1
@@ -29,7 +29,7 @@ jobs:
         id: tag_check
         run: |
           TAG="${{ steps.version.outputs.tag }}"
-          if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
+          if git ls-remote --tags origin | grep -qF "refs/tags/$TAG"; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "⚠️  Tag $TAG already exists — skipping release"
           else

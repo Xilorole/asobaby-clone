@@ -27,7 +27,8 @@ extract_version_code() {
 }
 
 today_calver_date() {
-    date +"%y.%-m"
+    # Use printf to strip the leading zero from month (%-m is GNU-specific)
+    printf '%d.%d' "$(date +%y)" "$((10#$(date +%m)))"
 }
 
 # ─── Read current version ──────────────────────────────────────────
