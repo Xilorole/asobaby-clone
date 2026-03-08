@@ -2,49 +2,54 @@ name: Build & Release
 
 on:
   push:
-    tags:
-      - "v*"
-  pull_request:
     branches: [main]
 
 jobs:
   build:
-    name: Build APK
+    name: Build & Release APK
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compute CalVer from tag
+      - name: Read version from build.gradle.kts
         id: version
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            TAG="${GITHUB_REF#refs/tags/v}"
-          else
-            TAG="$(date +%Y.%m%d.0)"
+          VERSION=$(sed -n 's/.*val calVersion = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -1)
+          if [[ -z "$VERSION" ]]; then
+            echo "::error::Could not read calVersion"
+            exit 1
           fi
-          # Parse YYYY.MMDD.PATCH → versionCode = YYYYMMDD * 100 + PATCH
-          IFS='.' read -r YEAR MMDD PATCH <<< "$TAG"
-          PATCH="${PATCH:-0}"
-          CODE=$(( YEAR * 1000000 + MMDD * 100 + PATCH ))
-          echo "version=$TAG" >> "$GITHUB_OUTPUT"
-          echo "code=$CODE" >> "$GITHUB_OUTPUT"
-          echo "Version: $TAG (code: $CODE)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📌 Version: $VERSION (tag: v$VERSION)"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --tags origin | grep -qF "refs/tags/$TAG"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "⚠️  Tag $TAG already exists — skipping release"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-java@v4
+        if: steps.tag_check.outputs.exists == 'false'
         with:
           distribution: temurin
           java-version: 17
 
       - name: Decode release keystore
-        if: env.RELEASE_KEYSTORE_BASE64 != ''
+        if: steps.tag_check.outputs.exists == 'false' && env.RELEASE_KEYSTORE_BASE64 != ''
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > android/release.keystore
 
       - name: Create key.properties
-        if: env.RELEASE_KEYSTORE_BASE64 != ''
+        if: steps.tag_check.outputs.exists == 'false' && env.RELEASE_KEYSTORE_BASE64 != ''
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: |
@@ -56,25 +61,34 @@ jobs:
           EOF
 
       - name: Setup Gradle
+        if: steps.tag_check.outputs.exists == 'false'
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
 
       - name: Build Release APK
-        env:
-          CAL_VERSION: ${{ steps.version.outputs.version }}
-          CAL_VERSION_CODE: ${{ steps.version.outputs.code }}
+        if: steps.tag_check.outputs.exists == 'false'
         run: cd android && ./gradlew assembleRelease --no-daemon --build-cache
 
+      - name: Create git tag
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          git tag "$TAG"
+          git push origin "$TAG"
+
       - name: Upload APK
+        if: steps.tag_check.outputs.exists == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: asobaby-apk
           path: android/app/build/outputs/apk/release/*.apk
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.tag_check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
           files: android/app/build/outputs/apk/release/*.apk
           generate_release_notes: true

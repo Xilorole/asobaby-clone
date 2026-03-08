@@ -1,6 +1,4 @@
 import java.util.Properties
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 plugins {
     id("com.android.application")
@@ -14,18 +12,12 @@ val keystoreProperties = Properties().apply {
     }
 }
 
-// ─── CalVer Versioning ─────────────────────────────────────────────
-// Format: YYYY.MMDD.patch  (e.g. 2026.0308.0)
-// versionCode: YYYYMMDD * 100 + patch  (e.g. 2026030800)
-// Override via gradle properties: -PcalverPatch=1 or env CAL_VERSION / CAL_VERSION_CODE
-val today: LocalDate = LocalDate.now()
-val calverDate = today.format(DateTimeFormatter.ofPattern("yyyy.MMdd"))
-val patch = (project.findProperty("calverPatch") as? String)?.toIntOrNull() ?: 0
-
-val calVersionName: String = System.getenv("CAL_VERSION")
-    ?: "$calverDate.$patch"
-val calVersionCode: Int = System.getenv("CAL_VERSION_CODE")?.toIntOrNull()
-    ?: (today.year * 10000 + today.monthValue * 100 + today.dayOfMonth) * 100 + patch
+// ─── Versioning ────────────────────────────────────────────────────
+// versionName: CalVer YY.M.patch  (e.g. 26.3.0 = March 2026)
+// versionCode: Simple incremental integer (must increase each release)
+// Use `scripts/bump-version.sh` to auto-bump both.
+val calVersion = "26.3.0"
+val appVersionCode = 1
 
 android {
     namespace = "dev.asobaby.app"
@@ -57,8 +49,8 @@ android {
         applicationId = "dev.asobaby.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = calVersionCode
-        versionName = calVersionName
+        versionCode = appVersionCode
+        versionName = calVersion
     }
 
     buildTypes {
@@ -66,7 +58,6 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             isDebuggable = true
-            // Debug builds get a distinct app label so both can be installed
             manifestPlaceholders["appLabel"] = "Asobaby Dev"
         }
         release {
