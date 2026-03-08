@@ -18,9 +18,9 @@ jobs:
 
       - name: Compare versions
         run: |
-          PR_VERSION=$(grep -oP 'val calVersion = "\K[^"]+' android/app/build.gradle.kts || echo "")
+          PR_VERSION=$(sed -n 's/.*val calVersion = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -1)
           MAIN_VERSION=$(git show origin/main:android/app/build.gradle.kts \
-            | grep -oP 'val calVersion = "\K[^"]+' || echo "")
+            | sed -n 's/.*val calVersion = "\([^"]*\)".*/\1/p' | head -1 || echo "")
 
           echo "PR version:   $PR_VERSION"
           echo "Main version: $MAIN_VERSION"
