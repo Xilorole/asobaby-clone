@@ -5,6 +5,7 @@ import android.graphics.*
 import android.view.MotionEvent
 import dev.asobaby.app.games.GameView
 import kotlin.math.*
+import kotlin.random.Random
 
 /**
  * 10-card memory matching game (神経衰弱).
@@ -47,6 +48,7 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         const val WAIT_DURATION = 0.6f   // pause after gathering
         const val PULSE_DECAY = 5.0f     // match-pulse fade speed
         const val SNAP_DIST = 4f         // snap to target below this
+        const val TARGET_FPS = 60f       // assumed frame-rate for lerp
 
         const val PHASE_DEALING = 0
         const val PHASE_PLAYING = 1
@@ -179,8 +181,8 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         val out = mutableListOf<Pair<Float, Float>>()
         for (r in 0 until rows) {
             for (c in 0 until cols) {
-                val jx = (Math.random().toFloat() - 0.5f) * cellW * 0.12f
-                val jy = (Math.random().toFloat() - 0.5f) * cellH * 0.12f
+                val jx = (Random.nextFloat() - 0.5f) * cellW * 0.12f
+                val jy = (Random.nextFloat() - 0.5f) * cellH * 0.12f
                 val px = (mx + cellW * (c + 0.5f) + jx)
                     .coerceIn(cardW / 2 + mx, screenWidth - cardW / 2 - mx)
                 val py = (my + cellH * (r + 0.5f) + jy)
@@ -207,7 +209,7 @@ class MemoryCardGameView(context: Context) : GameView(context) {
                 card.x = card.targetX
                 card.y = card.targetY
             } else {
-                val f = MOVE_LERP * deltaTime * 60f
+                val f = MOVE_LERP * deltaTime * TARGET_FPS
                 card.x += dx * f.coerceAtMost(1f)
                 card.y += dy * f.coerceAtMost(1f)
             }
