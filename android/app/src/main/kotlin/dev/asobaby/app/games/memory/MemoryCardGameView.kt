@@ -118,7 +118,14 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         startGameLoop()
     }
 
-    override fun stopGame() = stopGameLoop()
+    override fun stopGame() {
+        stopGameLoop()
+        cards.clear()
+        firstIndex = -1
+        secondIndex = -1
+        phase = PHASE_DEALING
+        needsInit = true
+    }
     override fun pauseGame() = stopGameLoop()
     override fun resumeGame() = startGameLoop()
 
@@ -307,7 +314,6 @@ class MemoryCardGameView(context: Context) : GameView(context) {
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action != MotionEvent.ACTION_DOWN) return true
-        performClick()
         if (phase != PHASE_PLAYING) return true
 
         val tx = event.x
@@ -335,8 +341,11 @@ class MemoryCardGameView(context: Context) : GameView(context) {
             cards[best].state = Card.STATE_FACE_UP
             phase = PHASE_CHECKING
             checkTimer = CHECK_DELAY
+        } else {
+            return true
         }
 
+        performClick()
         return true
     }
 
@@ -410,10 +419,22 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w > 0 && h > 0 && cards.isNotEmpty()) {
             calcDimensions()
-            val positions = makePositions()
-            for (i in cards.indices) {
-                cards[i].targetX = positions[i].first
-                cards[i].targetY = positions[i].second
+            // Preserve gathering behaviour across rotations: during PHASE_GATHERING
+            // and PHASE_WAITING, retarget cards to the new centre instead of
+            // assigning new random positions that would prevent completion.
+            if (phase == PHASE_GATHERING || phase == PHASE_WAITING) {
+                val cx = w / 2f
+                val cy = h / 2f
+                for (card in cards) {
+                    card.targetX = cx
+                    card.targetY = cy
+                }
+            } else {
+                val positions = makePositions()
+                for (i in cards.indices) {
+                    cards[i].targetX = positions[i].first
+                    cards[i].targetY = positions[i].second
+                }
             }
         }
     }
