@@ -18,7 +18,6 @@ val keystoreProperties = Properties().apply {
 // Use `scripts/bump-version.sh` to auto-bump both.
 val calVersion = "26.3.4"
 val appVersionCode = 5
-
 android {
     namespace = "dev.asobaby.app"
     compileSdk = 35
