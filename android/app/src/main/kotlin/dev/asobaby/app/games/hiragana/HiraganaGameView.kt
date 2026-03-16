@@ -185,7 +185,7 @@ class HiraganaGameView @JvmOverloads constructor(
     private fun initTts() {
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.JAPANESE
+                tts?.language = Locale.JAPAN
                 tts?.setSpeechRate(0.8f)
                 tts?.setPitch(1.05f)
                 ttsReady = true
