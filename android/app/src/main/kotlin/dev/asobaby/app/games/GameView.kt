@@ -3,10 +3,13 @@ package dev.asobaby.app.games
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.Choreographer
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
+import dev.asobaby.app.R
 
 /**
  * すべてのゲームの基底クラス。
@@ -100,6 +103,15 @@ abstract class GameView @JvmOverloads constructor(
     /** dp を px に変換する */
     fun dpToPx(dp: Float): Float {
         return dp * resources.displayMetrics.density
+    }
+
+    /**
+     * ゼン丸ゴシック Bold (weight 700) フォントを返す。
+     * Google Fonts プロバイダからダウンロード済みでない場合は null。
+     */
+    val zenFont: Typeface? by lazy {
+        try { ResourcesCompat.getFont(context, R.font.zen_maru_gothic_bold) }
+        catch (e: android.content.res.Resources.NotFoundException) { null }
     }
 
     override fun onDetachedFromWindow() {

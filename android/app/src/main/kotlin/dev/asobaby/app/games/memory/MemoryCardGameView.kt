@@ -113,6 +113,7 @@ class MemoryCardGameView(context: Context) : GameView(context) {
     // ── Lifecycle ────────────────────────────────────────────
 
     override fun startGame() {
+        textPaint.typeface = zenFont
         cards.clear()
         needsInit = true
         startGameLoop()
