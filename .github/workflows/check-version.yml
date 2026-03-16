@@ -1,16 +1,19 @@
 name: Check Version
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
 
 jobs:
   version-check:
     name: Version differs from main
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0  # need main branch history
 
       - name: Fetch main branch
