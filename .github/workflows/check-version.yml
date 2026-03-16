@@ -35,4 +35,10 @@ jobs:
             exit 1
           fi
 
+          # Reject downgrades: PR version must be strictly greater than main
+          if [[ "$(printf '%s\n' "$MAIN_VERSION" "$PR_VERSION" | sort -V | head -1)" != "$MAIN_VERSION" ]]; then
+            echo "::error::Version downgrade detected! PR version ($PR_VERSION) is lower than main ($MAIN_VERSION). Run: ./scripts/bump-version.sh"
+            exit 1
+          fi
+
           echo "✅ Version OK: $MAIN_VERSION → $PR_VERSION"
