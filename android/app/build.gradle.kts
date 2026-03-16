@@ -16,8 +16,8 @@ val keystoreProperties = Properties().apply {
 // versionName: CalVer YY.M.patch  (e.g. 26.3.0 = March 2026)
 // versionCode: Simple incremental integer (must increase each release)
 // Use `scripts/bump-version.sh` to auto-bump both.
-val calVersion = "26.3.5"
-val appVersionCode = 6
+val calVersion = "26.3.6"
+val appVersionCode = 7
 android {
     namespace = "dev.asobaby.app"
     compileSdk = 35
