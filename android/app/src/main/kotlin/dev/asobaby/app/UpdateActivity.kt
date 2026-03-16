@@ -1,7 +1,9 @@
 package dev.asobaby.app
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
@@ -119,6 +121,7 @@ class UpdateActivity : AppCompatActivity() {
         stagingReleasesContainer = findViewById(R.id.stagingReleasesContainer)
 
         btnCheck.setOnClickListener { onCheckPressed() }
+        findViewById<MaterialButton>(R.id.btnPlayProtect).setOnClickListener { openPlayProtectSettings() }
     }
 
     // ─── Version ───────────────────────────────────────────────────
@@ -382,6 +385,8 @@ class UpdateActivity : AppCompatActivity() {
             if (rel.notes.isNotEmpty()) {
                 append("\n\nRelease notes:\n${rel.notes}")
             }
+            append("\n\n⚠ Play Protect の警告が出た場合は")
+            append("「詳細」→「インストールする」で続行できます。")
         }
 
         AlertDialog.Builder(this)
@@ -390,8 +395,29 @@ class UpdateActivity : AppCompatActivity() {
             .setPositiveButton(getString(R.string.install)) { _, _ ->
                 scope.launch { downloadAndInstall(rel) }
             }
+            .setNeutralButton(getString(R.string.open_play_protect_settings)) { _, _ ->
+                openPlayProtectSettings()
+            }
             .setNegativeButton(getString(R.string.later), null)
             .show()
+    }
+
+    // ─── Play Protect Settings ──────────────────────────────────────
+
+    private fun openPlayProtectSettings() {
+        try {
+            startActivity(Intent("com.google.android.finsky.PLAY_PROTECT_SETTINGS").apply {
+                setPackage("com.android.vending")
+            })
+        } catch (_: ActivityNotFoundException) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://support.google.com/googleplay/answer/2812853")))
+            } catch (_: Exception) {
+                com.google.android.material.snackbar.Snackbar
+                    .make(btnCheck, "Play Store が見つかりません", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 
     // ─── Version Comparison (PRD only) ────────────────────────────
@@ -520,12 +546,34 @@ class UpdateActivity : AppCompatActivity() {
             text = getString(R.string.install)
             isEnabled = rel.apkUrl != null
             setOnClickListener {
-                scope.launch { downloadAndInstall(rel) }
+                showStagingInstallDialog(rel)
             }
         }
 
         row.addView(label)
         row.addView(btn)
         return row
+    }
+
+    private fun showStagingInstallDialog(rel: Release) {
+        val prLabel = if (rel.prNumber != null) "PR #${rel.prNumber} " else ""
+        val message = buildString {
+            append("${prLabel}v${rel.version} をインストールします。")
+            if (rel.sizeMB.isNotEmpty()) append("\nSize: ${rel.sizeMB}")
+            append("\n\n⚠ Play Protect の警告が出た場合は")
+            append("「詳細」→「インストールする」で続行できます。")
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.install))
+            .setMessage(message)
+            .setPositiveButton(getString(R.string.install)) { _, _ ->
+                scope.launch { downloadAndInstall(rel) }
+            }
+            .setNeutralButton(getString(R.string.open_play_protect_settings)) { _, _ ->
+                openPlayProtectSettings()
+            }
+            .setNegativeButton(getString(R.string.later), null)
+            .show()
     }
 }

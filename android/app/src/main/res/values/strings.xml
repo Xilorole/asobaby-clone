@@ -14,6 +14,11 @@
     <string name="staging_updates_label">Staging Updates</string>
     <string name="no_staging_updates">No staging updates available</string>
 
+    <!-- Play Protect -->
+    <string name="play_protect_title">Google Play Protect の警告について</string>
+    <string name="play_protect_description">インストール時に「有害なアプリ」という警告が表示される場合があります。これは Google Play 以外から配布されるアプリへの一般的な警告で、安全上の問題はありません。\n\n警告が出た場合は「詳細」→「インストールする」で続行できます。事前に Play Protect のスキャンを無効にすると回避できます。</string>
+    <string name="open_play_protect_settings">Play Protect 設定を開く</string>
+
     <!-- Game -->
     <string name="random_switch">🔀 ランダム</string>
     <string name="game_selection_title">ゲームをえらぼう</string>
