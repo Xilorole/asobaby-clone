@@ -66,9 +66,12 @@ android/app/src/main/kotlin/dev/asobaby/app/
 | Workflow | File | Trigger | Action |
 |----------|------|---------|--------|
 | **Staging Build** | `.github/workflows/staging.yml` | PR to `main` | Build debug APK, upload artifact |
-| **Check Version** | `.github/workflows/check-version.yml` | PR to `main` | Block if version not bumped |
+| **Check Version** | `.github/workflows/check-version.yml` | PR to `main` (runs automatically, no approval needed) | Block if version not bumped |
 | **Build & Release** | `.github/workflows/build.yml` | Push to `main` (merge) | Auto-tag, build release APK, create GitHub Release |
 | **Deploy Content** | `.github/workflows/deploy-content.yml` | Push to `main` (game_specs/**) | Deploy game content to Azure |
+| **Setup Branch Protection** | `.github/workflows/setup-branch-protection.yml` | Manual (`workflow_dispatch`) | Configures required status check on `main` |
+
+> **⚠️ One-time setup required**: Run the **Setup Branch Protection** workflow once (Actions → Setup Branch Protection → Run workflow) to enforce the version check as a required status check. Without this, PRs can be merged even when the check fails.
 
 ### Code Style
 - Language: Kotlin

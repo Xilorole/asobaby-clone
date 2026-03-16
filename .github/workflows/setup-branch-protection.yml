@@ -1,0 +1,43 @@
+name: Setup Branch Protection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Configure main branch required status checks
+    runs-on: ubuntu-latest
+    permissions:
+      administration: write
+    steps:
+      - name: Enable required status check for version verification
+        run: |
+          # NOTE: The check name below must exactly match the `name:` of the
+          # version-check job in .github/workflows/check-version.yml
+          HTTP_STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/main/protection" \
+            -d '{
+              "required_status_checks": {
+                "strict": false,
+                "contexts": ["Version differs from main"]
+              },
+              "enforce_admins": true,
+              "required_pull_request_reviews": null,
+              "restrictions": null
+            }')
+
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "❌ Failed to set branch protection: HTTP $HTTP_STATUS"
+            cat /tmp/response.json
+            exit 1
+          fi
+
+          echo "✅ Branch protection configured successfully"
+          echo "   - Required status check: 'Version differs from main'"
+          echo "   - Admins are enforced"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
