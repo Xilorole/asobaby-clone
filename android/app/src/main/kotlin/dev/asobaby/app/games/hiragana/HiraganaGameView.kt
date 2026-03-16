@@ -187,7 +187,6 @@ class HiraganaGameView @JvmOverloads constructor(
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.JAPAN
                 tts?.setSpeechRate(0.8f)
-                tts?.setPitch(1.05f)
                 ttsReady = true
             }
         }
@@ -197,6 +196,15 @@ class HiraganaGameView @JvmOverloads constructor(
         if (ttsReady) {
             tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_UTTERANCE_ID)
         }
+    }
+
+    /**
+     * 単語を自然なイントネーションで読み上げる。
+     * 孤立した単語は TTS エンジンのデフォルトアクセントで読まれ不自然になりやすい。
+     * 文末助詞「だよ」を付けて文として処理させることで、正しい韻律が適用される。
+     */
+    private fun speakWord(word: String) {
+        speak("${word}だよ")
     }
 
     // ─── 描画 ──────────────────────────────────────
@@ -271,7 +279,7 @@ class HiraganaGameView @JvmOverloads constructor(
             when {
                 y < topHalfY -> speak(currentCard.character)
                 btnRect.contains(x, y) -> showRandomCard()
-                else -> speak(currentCard.word)
+                else -> speakWord(currentCard.word)
             }
             performClick()
             return true
