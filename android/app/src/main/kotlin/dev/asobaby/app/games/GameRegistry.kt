@@ -3,6 +3,7 @@ package dev.asobaby.app.games
 import dev.asobaby.app.games.bubbles.BubblePopGameView
 import dev.asobaby.app.games.animal.AnimalEmojiGameView
 import dev.asobaby.app.games.memory.MemoryCardGameView
+import dev.asobaby.app.games.fireworks.FireworksGameView
 
 /**
  * 全ゲームの登録簿。
@@ -28,6 +29,12 @@ object GameRegistry {
             name = "🃏 しんけいすいじゃく",
             description = "カードをめくってペアを見つけよう！",
             factory = { context -> MemoryCardGameView(context) }
+        ),
+        GameInfo(
+            id = "fireworks",
+            name = "🎆 はなび",
+            description = "タップして花火をあげよう！",
+            factory = { context -> FireworksGameView(context) }
         )
     )
 
