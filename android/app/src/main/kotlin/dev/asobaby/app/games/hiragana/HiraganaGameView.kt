@@ -102,7 +102,6 @@ class HiraganaGameView @JvmOverloads constructor(
     private val charPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF1A237E.toInt()  // 濃い紺色
         textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
     }
     private val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
@@ -110,7 +109,6 @@ class HiraganaGameView @JvmOverloads constructor(
     private val wordPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF1B5E20.toInt()  // 濃い緑
         textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
     }
     private val btnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFFFF7043.toInt()  // 明るいオレンジ
@@ -118,7 +116,6 @@ class HiraganaGameView @JvmOverloads constructor(
     private val btnTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
     }
     private val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = HINT_TEXT_COLOR
@@ -132,6 +129,12 @@ class HiraganaGameView @JvmOverloads constructor(
     // ─── ライフサイクル ────────────────────────────
 
     override fun startGame() {
+        val font = zenFont
+        charPaint.typeface = font
+        wordPaint.typeface = font
+        btnTextPaint.typeface = font
+        hintPaint.typeface = font
+        emojiPaint.typeface = font
         showRandomCard()
         initTts()
     }

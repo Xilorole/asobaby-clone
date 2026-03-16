@@ -85,6 +85,10 @@ class AnimalEmojiGameView @JvmOverloads constructor(
     // ─── ライフサイクル ────────────────────────────
 
     override fun startGame() {
+        val font = zenFont
+        questionPaint.typeface = font
+        emojiPaint.typeface = font
+        shadowPaint.typeface = font
         questionMarks.clear()
         animalEmojis.clear()
         spawnTimer = spawnInterval * 0.8f  // すぐに最初の❓を出す
