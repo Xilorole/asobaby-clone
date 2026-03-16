@@ -64,11 +64,13 @@ jobs:
           fi
 
           # Create new pre-release with the debug APK
+          NOTES="Staging build for PR #${PR_NUMBER}: ${PR_TITLE}
+
+          Version: v${VERSION}-dev
+          Commit: ${{ github.sha }}"
+
           gh release create "$TAG" \
             --prerelease \
             --title "Staging PR #${PR_NUMBER} (v${VERSION}-dev)" \
-            --notes "Staging build for PR #${PR_NUMBER}: ${PR_TITLE}
-
-Version: v${VERSION}-dev
-Commit: ${{ github.sha }}" \
+            --notes "$NOTES" \
             "$APK_FILE"

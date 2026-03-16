@@ -44,6 +44,10 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "dev.asobaby.app"
         minSdk = 24
