@@ -68,6 +68,14 @@
                     android:textStyle="bold"
                     android:visibility="gone" />
 
+                <!-- Staging releases list (debug build only: one item per open PR) -->
+                <LinearLayout
+                    android:id="@+id/stagingReleasesContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
