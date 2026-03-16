@@ -11,6 +11,8 @@
     <string name="later">Later</string>
     <string name="release_notes_label">Release notes:</string>
     <string name="download_failed">Download failed.</string>
+    <string name="staging_updates_label">Staging Updates</string>
+    <string name="no_staging_updates">No staging updates available</string>
 
     <!-- Game -->
     <string name="random_switch">🔀 ランダム</string>

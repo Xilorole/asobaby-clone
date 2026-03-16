@@ -3,13 +3,14 @@ name: Staging Build
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
     name: Build Debug APK
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -26,9 +27,48 @@ jobs:
       - name: Build Debug APK
         run: cd android && ./gradlew assembleDebug --no-daemon --build-cache
 
-      - name: Upload Debug APK
+      - name: Upload Debug APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: asobaby-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
+
+      - name: Read version from build.gradle.kts
+        id: version
+        run: |
+          VERSION=$(sed -n 's/.*val calVersion = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts | head -1)
+          if [[ -z "$VERSION" ]]; then
+            echo "::error::Could not read calVersion"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update staging pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          TAG="stg-pr-${PR_NUMBER}"
+          VERSION="${{ steps.version.outputs.version }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          APK_FILE=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -1)
+
+          # Delete existing release and tag if they exist (to update with new build)
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            gh release delete "$TAG" --repo "${{ github.repository }}" --yes
+            # Only delete the git tag if it actually exists
+            if gh api "repos/${{ github.repository }}/git/refs/tags/${TAG}" > /dev/null 2>&1; then
+              gh api "repos/${{ github.repository }}/git/refs/tags/${TAG}" -X DELETE
+            fi
+          fi
+
+          # Create new pre-release with the debug APK
+          gh release create "$TAG" \
+            --prerelease \
+            --title "Staging PR #${PR_NUMBER} (v${VERSION}-dev)" \
+            --notes "Staging build for PR #${PR_NUMBER}: ${PR_TITLE}
+
+Version: v${VERSION}-dev
+Commit: ${{ github.sha }}" \
+            "$APK_FILE"

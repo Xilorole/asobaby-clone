@@ -4,7 +4,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +14,7 @@ import androidx.core.content.FileProvider
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.File
@@ -25,7 +28,8 @@ data class Release(
     val version: String,
     val notes: String,
     val apkUrl: String?,
-    val apkSize: Long?
+    val apkSize: Long?,
+    val prNumber: Int? = null
 ) {
     val sizeMB: String
         get() = if (apkSize != null) "%.1f MB".format(apkSize / 1024.0 / 1024.0) else ""
@@ -40,7 +44,8 @@ class UpdateActivity : AppCompatActivity() {
     // State
     private var currentVersion = ""
     private var buildNumber = ""
-    private var release: Release? = null
+    private var release: Release? = null           // PRD single release
+    private var stagingReleases: List<Release> = emptyList()  // STG multiple releases
     private var checking = false
     private var downloading = false
     private var downloadProgress = 0f
@@ -58,6 +63,9 @@ class UpdateActivity : AppCompatActivity() {
     private lateinit var tvProgress: TextView
     private lateinit var errorSection: View
     private lateinit var tvError: TextView
+    private lateinit var stagingReleasesContainer: LinearLayout
+
+    private val isDebugBuild: Boolean get() = BuildConfig.DEBUG
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,6 +116,7 @@ class UpdateActivity : AppCompatActivity() {
         tvProgress = findViewById(R.id.tvProgress)
         errorSection = findViewById(R.id.errorSection)
         tvError = findViewById(R.id.tvError)
+        stagingReleasesContainer = findViewById(R.id.stagingReleasesContainer)
 
         btnCheck.setOnClickListener { onCheckPressed() }
     }
@@ -148,24 +157,34 @@ class UpdateActivity : AppCompatActivity() {
             checkForUpdate()
             if (errorMessage != null) return@launch
 
-            val rel = release ?: return@launch
-            if (hasUpdate()) {
-                showUpdateDialog(rel)
-            } else {
-                com.google.android.material.snackbar.Snackbar
-                    .make(btnCheck, "Up to date (v${rel.version})", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
-                    .show()
+            if (!isDebugBuild) {
+                // PRD: show dialog for single release
+                val rel = release ?: return@launch
+                if (hasUpdate()) {
+                    showUpdateDialog(rel)
+                } else {
+                    com.google.android.material.snackbar.Snackbar
+                        .make(btnCheck, "Up to date (v${rel.version})", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                        .show()
+                }
             }
+            // STG: list is already rendered in updateUI(), no additional dialog needed
         }
     }
 
     private suspend fun checkForUpdate() {
         checking = true
         errorMessage = null
+        release = null
+        stagingReleases = emptyList()
         updateUI()
 
         try {
-            release = withContext(Dispatchers.IO) { fetchLatestRelease() }
+            if (isDebugBuild) {
+                stagingReleases = withContext(Dispatchers.IO) { fetchStagingReleases() }
+            } else {
+                release = withContext(Dispatchers.IO) { fetchLatestProductionRelease() }
+            }
         } catch (e: Exception) {
             errorMessage = "Failed to fetch release info.\n${e.message}"
         } finally {
@@ -174,7 +193,10 @@ class UpdateActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchLatestRelease(): Release {
+    // ─── Fetch: Production ─────────────────────────────────────────
+
+    private fun fetchLatestProductionRelease(): Release {
+        // /releases/latest always returns the latest published full (non-pre-release)
         val url = URL("https://api.github.com/repos/Xilorole/asobaby-clone/releases/latest")
         val conn = url.openConnection() as HttpURLConnection
         conn.setRequestProperty("Accept", "application/vnd.github+json")
@@ -223,6 +245,60 @@ class UpdateActivity : AppCompatActivity() {
             }
 
             return Release(version, notes, apkUrl, apkSize)
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    // ─── Fetch: Staging ────────────────────────────────────────────
+
+    private fun fetchStagingReleases(): List<Release> {
+        val url = URL("https://api.github.com/repos/Xilorole/asobaby-clone/releases?per_page=100")
+        val conn = url.openConnection() as HttpURLConnection
+        conn.setRequestProperty("Accept", "application/vnd.github+json")
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 10_000
+
+        try {
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            val array = JSONArray(body)
+            val releases = mutableListOf<Release>()
+
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+
+                // Only include staging pre-releases tagged stg-pr-{number}
+                if (!item.optBoolean("prerelease", false)) continue
+                val tagName = item.optString("tag_name", "")
+                if (!tagName.startsWith("stg-pr-")) continue
+
+                val prNumber = tagName.removePrefix("stg-pr-").toIntOrNull() ?: continue
+                val releaseName = item.optString("name", tagName)
+                // Extract version like "26.3.3-dev" from name "Staging PR #5 (v26.3.3-dev)"
+                val version = Regex("""v([\d.]+(?:-\w+)?)""").find(releaseName)
+                    ?.groupValues?.get(1) ?: "unknown"
+                val notes = item.optString("body", "")
+
+                var apkUrl: String? = null
+                var apkSize: Long? = null
+                val assets = item.optJSONArray("assets")
+                if (assets != null) {
+                    for (j in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(j)
+                        val name = asset.optString("name", "")
+                        if (name.endsWith(".apk")) {
+                            apkUrl = asset.optString("browser_download_url").takeIf { it.isNotEmpty() }
+                            apkSize = asset.optLong("size", 0).takeIf { it > 0 }
+                            break
+                        }
+                    }
+                }
+
+                releases.add(Release(version, notes, apkUrl, apkSize, prNumber))
+            }
+
+            // Show newest PRs first
+            return releases.sortedByDescending { it.prNumber ?: 0 }
         } finally {
             conn.disconnect()
         }
@@ -297,7 +373,7 @@ class UpdateActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    // ─── Update Dialog ─────────────────────────────────────────────
+    // ─── Update Dialog (PRD only) ──────────────────────────────────
 
     private fun showUpdateDialog(rel: Release) {
         val message = buildString {
@@ -318,7 +394,7 @@ class UpdateActivity : AppCompatActivity() {
             .show()
     }
 
-    // ─── Version Comparison ────────────────────────────────────────
+    // ─── Version Comparison (PRD only) ────────────────────────────
 
     private fun hasUpdate(): Boolean {
         val rel = release ?: return false
@@ -347,7 +423,33 @@ class UpdateActivity : AppCompatActivity() {
         btnCheck.isEnabled = !busy
         btnCheck.text = if (checking) getString(R.string.checking) else getString(R.string.check_for_update)
 
-        // Latest version info
+        if (isDebugBuild) {
+            updateStagingUI()
+        } else {
+            updateProductionUI()
+        }
+
+        // Progress
+        if (downloading) {
+            progressSection.visibility = View.VISIBLE
+            progressBar.progress = (downloadProgress * 100).toInt()
+            tvProgress.text = "${(downloadProgress * 100).toInt()}%"
+        } else {
+            progressSection.visibility = View.GONE
+        }
+
+        // Error
+        if (errorMessage != null) {
+            errorSection.visibility = View.VISIBLE
+            tvError.text = errorMessage
+        } else {
+            errorSection.visibility = View.GONE
+        }
+    }
+
+    private fun updateProductionUI() {
+        stagingReleasesContainer.visibility = View.GONE
+
         val rel = release
         if (rel != null) {
             divider.visibility = View.VISIBLE
@@ -367,22 +469,63 @@ class UpdateActivity : AppCompatActivity() {
             tvLatestVersion.visibility = View.GONE
             tvUpdateStatus.visibility = View.GONE
         }
+    }
 
-        // Progress
-        if (downloading) {
-            progressSection.visibility = View.VISIBLE
-            progressBar.progress = (downloadProgress * 100).toInt()
-            tvProgress.text = "${(downloadProgress * 100).toInt()}%"
-        } else {
-            progressSection.visibility = View.GONE
+    private fun updateStagingUI() {
+        tvLatestVersion.visibility = View.GONE
+        tvUpdateStatus.visibility = View.GONE
+
+        stagingReleasesContainer.removeAllViews()
+
+        if (stagingReleases.isEmpty()) {
+            if (!checking) {
+                divider.visibility = View.GONE
+                stagingReleasesContainer.visibility = View.GONE
+            }
+            return
         }
 
-        // Error
-        if (errorMessage != null) {
-            errorSection.visibility = View.VISIBLE
-            tvError.text = errorMessage
-        } else {
-            errorSection.visibility = View.GONE
+        divider.visibility = View.VISIBLE
+        stagingReleasesContainer.visibility = View.VISIBLE
+
+        for (rel in stagingReleases) {
+            stagingReleasesContainer.addView(buildStagingReleaseItem(rel))
         }
+    }
+
+    private fun buildStagingReleaseItem(rel: Release): View {
+        val dp8 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, resources.displayMetrics).toInt()
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.topMargin = dp8 }
+        }
+
+        val label = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            val prLabel = if (rel.prNumber != null) "PR #${rel.prNumber}" else "Staging"
+            val sizeText = if (rel.sizeMB.isNotEmpty()) " (${rel.sizeMB})" else ""
+            text = "$prLabel – v${rel.version}$sizeText"
+            textSize = 14f
+        }
+
+        val btn = MaterialButton(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            text = getString(R.string.install)
+            isEnabled = rel.apkUrl != null
+            setOnClickListener {
+                scope.launch { downloadAndInstall(rel) }
+            }
+        }
+
+        row.addView(label)
+        row.addView(btn)
+        return row
     }
 }

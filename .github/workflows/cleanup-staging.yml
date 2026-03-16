@@ -1,0 +1,31 @@
+name: Cleanup Staging Release
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  cleanup:
+    name: Delete staging pre-release for closed PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete staging release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          TAG="stg-pr-${PR_NUMBER}"
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            gh release delete "$TAG" --repo "${{ github.repository }}" --yes
+            # Only delete the git tag if it actually exists
+            if gh api "repos/${{ github.repository }}/git/refs/tags/${TAG}" > /dev/null 2>&1; then
+              gh api "repos/${{ github.repository }}/git/refs/tags/${TAG}" -X DELETE
+            fi
+            echo "✅ Deleted staging release for PR #${PR_NUMBER}"
+          else
+            echo "ℹ️ No staging release found for PR #${PR_NUMBER}"
+          fi
