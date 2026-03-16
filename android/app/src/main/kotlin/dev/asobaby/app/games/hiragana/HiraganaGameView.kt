@@ -159,9 +159,9 @@ class HiraganaGameView @JvmOverloads constructor(
     private fun updateLayout() {
         if (screenWidth == 0 || screenHeight == 0) return
         topHalfY = screenHeight * 0.5f
-        val btnHeight = dpToPx(60f)
+        val btnHeight = dpToPx(48f)
         val btnMarginH = dpToPx(40f)
-        val btnMarginB = dpToPx(24f)
+        val btnMarginB = dpToPx(90f)
         btnRect.set(
             btnMarginH,
             screenHeight - btnMarginB - btnHeight,
@@ -185,7 +185,9 @@ class HiraganaGameView @JvmOverloads constructor(
     private fun initTts() {
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.JAPAN
+                tts?.language = Locale.JAPANESE
+                tts?.setSpeechRate(0.8f)
+                tts?.setPitch(1.05f)
                 ttsReady = true
             }
         }
@@ -223,38 +225,38 @@ class HiraganaGameView @JvmOverloads constructor(
         canvas.drawText(currentCard.character, screenWidth / 2f, textCenterY, charPaint)
 
         // タップヒント
-        hintPaint.textSize = dpToPx(15f)
+        hintPaint.textSize = dpToPx(14f)
         canvas.drawText("👆 タップして よもう", screenWidth / 2f, topHalfY - dpToPx(14f), hintPaint)
     }
 
     private fun drawEmojiAndWord(canvas: Canvas) {
         val areaTop = topHalfY
-        val areaBottom = btnRect.top
+        val areaBottom = btnRect.top - dpToPx(8f)
         val areaHeight = areaBottom - areaTop
 
         // 絵文字を中央上寄りに配置
-        val emojiSize = (areaHeight * 0.42f).coerceAtMost(dpToPx(120f))
+        val emojiSize = (areaHeight * 0.38f).coerceAtMost(dpToPx(100f))
         emojiPaint.textSize = emojiSize
         val emojiFm = emojiPaint.fontMetrics
-        val emojiCenterY = areaTop + areaHeight * 0.38f
+        val emojiCenterY = areaTop + areaHeight * 0.32f
         val emojiY = emojiCenterY - (emojiFm.ascent + emojiFm.descent) / 2f
         canvas.drawText(currentCard.emoji, screenWidth / 2f, emojiY, emojiPaint)
 
         // 単語テキストを絵文字の下に表示
-        val wordSize = (areaHeight * 0.16f).coerceIn(dpToPx(24f), dpToPx(48f))
+        val wordSize = (areaHeight * 0.16f).coerceIn(dpToPx(24f), dpToPx(44f))
         wordPaint.textSize = wordSize
         val wordFm = wordPaint.fontMetrics
-        val wordY = emojiCenterY + emojiSize * 0.52f - (wordFm.ascent + wordFm.descent) / 2f
+        val wordY = emojiCenterY + emojiSize * 0.65f - (wordFm.ascent + wordFm.descent) / 2f
         canvas.drawText(currentCard.word, screenWidth / 2f, wordY, wordPaint)
 
         // タップヒント
-        hintPaint.textSize = dpToPx(15f)
+        hintPaint.textSize = dpToPx(14f)
         canvas.drawText("👆 タップして きこう", screenWidth / 2f, btnRect.top - dpToPx(10f), hintPaint)
     }
 
     private fun drawNextButton(canvas: Canvas) {
-        canvas.drawRoundRect(btnRect, dpToPx(30f), dpToPx(30f), btnPaint)
-        btnTextPaint.textSize = dpToPx(22f)
+        canvas.drawRoundRect(btnRect, dpToPx(24f), dpToPx(24f), btnPaint)
+        btnTextPaint.textSize = dpToPx(18f)
         val fm = btnTextPaint.fontMetrics
         val textY = btnRect.centerY() - (fm.ascent + fm.descent) / 2f
         canvas.drawText("つぎへ  ▶", screenWidth / 2f, textY, btnTextPaint)
