@@ -107,7 +107,7 @@ abstract class GameView @JvmOverloads constructor(
 
     /**
      * ゼン丸ゴシック Bold (weight 700) フォントを返す。
-     * Google Fonts プロバイダからダウンロード済みでない場合は null。
+     * バンドル済み TTF から読み込む。
      */
     val zenFont: Typeface? by lazy {
         try { ResourcesCompat.getFont(context, R.font.zen_maru_gothic_bold) }
