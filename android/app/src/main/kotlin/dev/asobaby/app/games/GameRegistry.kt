@@ -4,6 +4,7 @@ import dev.asobaby.app.games.bubbles.BubblePopGameView
 import dev.asobaby.app.games.animal.AnimalEmojiGameView
 import dev.asobaby.app.games.memory.MemoryCardGameView
 import dev.asobaby.app.games.fireworks.FireworksGameView
+import dev.asobaby.app.games.hiragana.HiraganaGameView
 
 /**
  * 全ゲームの登録簿。
@@ -35,6 +36,12 @@ object GameRegistry {
             name = "🎆 はなび",
             description = "タップして花火をあげよう！",
             factory = { context -> FireworksGameView(context) }
+        ),
+        GameInfo(
+            id = "hiragana",
+            name = "🔤 ひらがな",
+            description = "ひらがなをおぼえよう！タップすると読み上げてくれるよ！",
+            factory = { context -> HiraganaGameView(context) }
         )
     )
 
