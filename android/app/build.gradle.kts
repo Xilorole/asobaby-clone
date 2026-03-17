@@ -34,6 +34,12 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (keystoreProperties.containsKey("storeFile")) {
             create("release") {
                 storeFile = file(keystoreProperties["storeFile"] as String)

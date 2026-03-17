@@ -8,3 +8,6 @@
 key.properties
 **/*.keystore
 **/*.jks
+
+# Allow the shared debug keystore (not sensitive, standard password "android")
+!debug.keystore
