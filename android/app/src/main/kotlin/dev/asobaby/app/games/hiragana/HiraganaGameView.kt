@@ -5,13 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.speech.tts.TextToSpeech
+import android.media.MediaPlayer
 import android.util.AttributeSet
 import android.view.MotionEvent
 import dev.asobaby.app.games.GameView
-import java.util.Locale
-
-private const val TTS_UTTERANCE_ID = "hiragana_tts"
 private const val HINT_TEXT_COLOR = 0x66000000
 
 /**
@@ -37,7 +34,7 @@ class HiraganaGameView @JvmOverloads constructor(
     // ─── カードデータ ──────────────────────────────
 
     private val cards = listOf(
-        HiraganaCard("あ", "あり", "🐜"),
+        HiraganaCard("あ", "あひる", "🐥"),
         HiraganaCard("い", "いぬ", "🐶"),
         HiraganaCard("う", "うし", "🐄"),
         HiraganaCard("え", "えんぴつ", "✏️"),
@@ -46,40 +43,49 @@ class HiraganaGameView @JvmOverloads constructor(
         HiraganaCard("き", "きつね", "🦊"),
         HiraganaCard("く", "くま", "🐻"),
         HiraganaCard("け", "けいさつ", "🚔"),
-        HiraganaCard("こ", "こうもり", "🦇"),
+        HiraganaCard("こ", "こおり", "🧊"),
         HiraganaCard("さ", "さかな", "🐟"),
         HiraganaCard("し", "しか", "🦌"),
         HiraganaCard("す", "すいか", "🍉"),
+        HiraganaCard("せ", "せんたくき", "🫧"),
+        HiraganaCard("そ", "そら", "☀️"),
         HiraganaCard("た", "たこ", "🐙"),
         HiraganaCard("ち", "ちょうちょ", "🦋"),
         HiraganaCard("つ", "つき", "🌙"),
-        HiraganaCard("て", "てんとうむし", "🐞"),
+        HiraganaCard("て", "てがみ", "✉️"),
         HiraganaCard("と", "とり", "🐦"),
         HiraganaCard("な", "なす", "🍆"),
         HiraganaCard("に", "にじ", "🌈"),
+        HiraganaCard("ぬ", "ぬいぐるみ", "🧸"),
         HiraganaCard("ね", "ねこ", "🐱"),
+        HiraganaCard("の", "のりもの", "🚗"),
         HiraganaCard("は", "はな", "🌸"),
         HiraganaCard("ひ", "ひつじ", "🐑"),
         HiraganaCard("ふ", "ふね", "⛵"),
         HiraganaCard("へ", "へび", "🐍"),
         HiraganaCard("ほ", "ほし", "⭐"),
+        HiraganaCard("ま", "まいく", "🎤"),
         HiraganaCard("み", "みかん", "🍊"),
+        HiraganaCard("む", "むし", "🐛"),
+        HiraganaCard("め", "めがね", "👓"),
         HiraganaCard("も", "もも", "🍑"),
         HiraganaCard("や", "やぎ", "🐐"),
         HiraganaCard("ゆ", "ゆき", "❄️"),
+        HiraganaCard("よ", "よっと", "🛥️"),
         HiraganaCard("ら", "らいおん", "🦁"),
         HiraganaCard("り", "りんご", "🍎"),
+        HiraganaCard("る", "ぼーる", "⚽"),
         HiraganaCard("れ", "れもん", "🍋"),
+        HiraganaCard("ろ", "ろけっと", "🚀"),
         HiraganaCard("わ", "わに", "🐊"),
-        HiraganaCard("ろ", "ろけっと", "🚀")
+        HiraganaCard("ん", "かばん", "👜")
     )
 
     // ─── ゲーム状態 ────────────────────────────────
 
     private var currentCard: HiraganaCard = cards[0]
     private var previousIndex: Int = -1
-    private var tts: TextToSpeech? = null
-    private var ttsReady = false
+    private var mediaPlayer: MediaPlayer? = null
 
     // ─── レイアウト ────────────────────────────────
 
@@ -136,13 +142,10 @@ class HiraganaGameView @JvmOverloads constructor(
         hintPaint.typeface = font
         emojiPaint.typeface = font
         showRandomCard()
-        initTts()
     }
 
     override fun stopGame() {
-        tts?.shutdown()
-        tts = null
-        ttsReady = false
+        releasePlayer()
     }
 
     override fun pauseGame() {}
@@ -180,21 +183,35 @@ class HiraganaGameView @JvmOverloads constructor(
         invalidate()
     }
 
-    // ─── TTS 初期化・読み上げ ──────────────────────
+    // ─── 音声再生（assets から MP3） ───────────────
 
-    private fun initTts() {
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale.JAPAN
-                ttsReady = true
+    private fun playAudio(assetFileName: String) {
+        releasePlayer()
+        try {
+            val afd = context.assets.openFd("audio/hiragana/$assetFileName")
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                afd.close()
+                prepare()
+                start()
+                setOnCompletionListener { releasePlayer() }
             }
+        } catch (_: Exception) {
+            // アセットが存在しない場合は無視
         }
     }
 
-    private fun speak(text: String) {
-        if (ttsReady) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, TTS_UTTERANCE_ID)
-        }
+    private fun releasePlayer() {
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    private fun speakCharacter(card: HiraganaCard) {
+        playAudio("char_${card.character}.mp3")
+    }
+
+    private fun speakWord(card: HiraganaCard) {
+        playAudio("word_${card.word}.mp3")
     }
 
     // ─── 描画 ──────────────────────────────────────
@@ -267,9 +284,9 @@ class HiraganaGameView @JvmOverloads constructor(
             val x = event.x
             val y = event.y
             when {
-                y < topHalfY -> speak(currentCard.character)
+                y < topHalfY -> speakCharacter(currentCard)
                 btnRect.contains(x, y) -> showRandomCard()
-                else -> speak(currentCard.word)
+                else -> speakWord(currentCard)
             }
             performClick()
             return true
