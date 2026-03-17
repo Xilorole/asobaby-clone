@@ -182,9 +182,9 @@ TEXTS=(
     "word_ほし ほし"
     "word_まいく まいく"
     "word_みかん みかん"
-    "word_むし むし"
+    "word_むぎ むぎ"
     "word_めがね めがね"
-    "word_もも もも"
+    "word_もみじ もみじ"
     "word_やぎ やぎ"
     "word_ゆき ゆき"
     "word_よっと よっと"
@@ -216,8 +216,7 @@ get_pitch_override() {
         word_おに)          echo "<prosody contour='(0%,-4st)(40%,+0st)(100%,+3st)'>${text}</prosody>" ;;
         word_しか)          echo "<prosody contour='(0%,-4st)(40%,+0st)(100%,+3st)'>${text}</prosody>" ;;
         word_つき)          echo "<prosody contour='(0%,-4st)(40%,+0st)(100%,+3st)'>${text}</prosody>" ;;
-        word_もも)          echo "<prosody contour='(0%,-4st)(40%,+0st)(100%,+3st)'>${text}</prosody>" ;;
-        word_むし)          echo "<prosody contour='(0%,-4st)(40%,+0st)(100%,+3st)'>${text}</prosody>" ;;
+
         # 2モーラ HL: 頭高型[1]
         word_そら)          echo "<prosody contour='(0%,+3st)(50%,+0st)(100%,-4st)'>${text}</prosody>" ;;
         word_ねこ)          echo "<prosody contour='(0%,+3st)(50%,+0st)(100%,-4st)'>${text}</prosody>" ;;
@@ -228,10 +227,23 @@ get_pitch_override() {
         # 3モーラ LHH: 平板型[0]
         word_こおり)        echo "<prosody contour='(0%,-3st)(25%,+1st)(100%,+2st)'>${text}</prosody>" ;;
         word_てがみ)        echo "<prosody contour='(0%,-3st)(25%,-1st)(100%,+0st)'>${text}</prosody>" ;;
-        # 3モーラ HLL: 頭高型[1]
-        word_ちょうちょ)    echo "<prosody contour='(0%,+3st)(30%,+1st)(60%,-1st)(100%,-4st)'>${text}</prosody>" ;;
+
         # 5モーラ LHHHL: 中高型[4] せんたくき
         word_せんたくき)    echo "<prosody contour='(0%,-3st)(10%,+2st)(60%,+2st)(75%,-1st)(100%,-4st)'>${text}</prosody>" ;;
+        *) echo "" ;;
+    esac
+}
+
+# SAPI phoneme でアクセントを直接制御する単語
+# カタカナ + ' でアクセント核位置を指定 (直後にピッチが下がる)
+get_sapi_phoneme() {
+    local filename="$1"
+    local text="$2"
+    case "$filename" in
+        word_ちょうちょ)  echo "<phoneme alphabet='sapi' ph=\"チョ'ウチョ\">${text}</phoneme>" ;;
+        word_ぼーる)      echo "<phoneme alphabet='sapi' ph='ボール'>${text}</phoneme>" ;;
+        word_みかん)      echo "<phoneme alphabet='sapi' ph=\"ミ'カン\">${text}</phoneme>" ;;
+        word_よっと)      echo "<phoneme alphabet='sapi' ph=\"ヨ'ット\">${text}</phoneme>" ;;
         *) echo "" ;;
     esac
 }
@@ -250,25 +262,39 @@ build_ssml() {
 </speak>
 EOF
     else
-        # 単語: ピッチ補正があればそれを使う、なければ通常
-        local override
-        override=$(get_pitch_override "$filename" "$text")
-        if [[ -n "$override" ]]; then
+        # 1) SAPI phoneme でアクセント制御 (最優先)
+        local phoneme
+        phoneme=$(get_sapi_phoneme "$filename" "$text")
+        if [[ -n "$phoneme" ]]; then
             cat <<EOF
+<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='ja-JP'>
+  <voice name='${VOICE}'>
+    ${phoneme}
+  </voice>
+</speak>
+EOF
+        else
+            # 2) prosody contour でピッチ補正
+            local override
+            override=$(get_pitch_override "$filename" "$text")
+            if [[ -n "$override" ]]; then
+                cat <<EOF
 <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='ja-JP'>
   <voice name='${VOICE}'>
     ${override}
   </voice>
 </speak>
 EOF
-        else
-            cat <<EOF
+            else
+                # 3) 通常読み上げ
+                cat <<EOF
 <speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='ja-JP'>
   <voice name='${VOICE}'>
     <prosody rate='medium'>${text}</prosody>
   </voice>
 </speak>
 EOF
+            fi
         fi
     fi
 }
