@@ -16,8 +16,8 @@ val keystoreProperties = Properties().apply {
 // versionName: CalVer YY.M.patch  (e.g. 26.3.0 = March 2026)
 // versionCode: Simple incremental integer (must increase each release)
 // Use `scripts/bump-version.sh` to auto-bump both.
-val calVersion = "26.3.8"
-val appVersionCode = 9
+val calVersion = "26.3.9"
+val appVersionCode = 10
 android {
     namespace = "dev.asobaby.app"
     compileSdk = 35
@@ -34,6 +34,12 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (keystoreProperties.containsKey("storeFile")) {
             create("release") {
                 storeFile = file(keystoreProperties["storeFile"] as String)
