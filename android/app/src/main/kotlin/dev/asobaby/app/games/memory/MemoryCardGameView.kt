@@ -55,6 +55,8 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         const val PHASE_CHECKING = 2
         const val PHASE_GATHERING = 3
         const val PHASE_WAITING = 4
+
+        const val MENU_AREA_DP = 72f     // top area reserved for menu buttons
     }
 
     // ── Emoji pool ───────────────────────────────────────────
@@ -163,9 +165,11 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         val rows = if (portrait) 5 else 2
         val mx = dpToPx(10f)
         val my = dpToPx(10f)
+        val menuH = dpToPx(MENU_AREA_DP)   // reserve top area for menu buttons
+        val usableH = screenHeight - menuH
 
         cardW = (screenWidth - mx * (cols + 1)) / cols
-        cardH = (screenHeight - my * (rows + 1)) / rows
+        cardH = (usableH - my * (rows + 1)) / rows
 
         // keep aspect ratio reasonable
         if (cardW / cardH > 1.4f) cardW = cardH * 1.4f
@@ -183,8 +187,10 @@ class MemoryCardGameView(context: Context) : GameView(context) {
         val rows = if (portrait) 5 else 2
         val mx = dpToPx(10f)
         val my = dpToPx(10f)
+        val menuH = dpToPx(MENU_AREA_DP)   // reserve top area for menu buttons
+        val usableH = screenHeight - menuH
         val cellW = (screenWidth - mx * 2) / cols
-        val cellH = (screenHeight - my * 2) / rows
+        val cellH = (usableH - my * 2) / rows
 
         val out = mutableListOf<Pair<Float, Float>>()
         for (r in 0 until rows) {
@@ -193,8 +199,8 @@ class MemoryCardGameView(context: Context) : GameView(context) {
                 val jy = (Random.nextFloat() - 0.5f) * cellH * 0.12f
                 val px = (mx + cellW * (c + 0.5f) + jx)
                     .coerceIn(cardW / 2 + mx, screenWidth - cardW / 2 - mx)
-                val py = (my + cellH * (r + 0.5f) + jy)
-                    .coerceIn(cardH / 2 + my, screenHeight - cardH / 2 - my)
+                val py = (menuH + my + cellH * (r + 0.5f) + jy)
+                    .coerceIn(cardH / 2 + menuH + my, screenHeight - cardH / 2 - my)
                 out.add(px to py)
             }
         }
